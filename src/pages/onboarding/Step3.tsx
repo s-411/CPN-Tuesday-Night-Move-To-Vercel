@@ -51,8 +51,8 @@ export function Step3() {
   return (
     <div className="min-h-screen flex flex-col items-center p-6">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl mb-2">Create your account</h1>
-        <p className="text-cpn-gray mb-6">Step 3 of 4</p>
+        <h1 className="text-3xl mb-2">Get your CPN result</h1>
+        <p className="text-cpn-gray mb-6">Enter your email address to be logged in and get your CPN result</p>
 
         <div className="card-cpn">
           {error && (
@@ -86,11 +86,9 @@ export function Step3() {
             </div>
           </div>
 
-          <div className="flex gap-3 pt-6">
-            <button className="btn-secondary flex-1" onClick={() => goTo('/step-2')} disabled={loading}>Back</button>
-            <button className="btn-secondary flex-1" onClick={() => goTo('/step-4')} disabled={loading}>Skip</button>
+          <div className="flex pt-6">
             <button className="btn-cpn flex-1" onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Signing in…' : 'Continue'}
+              {loading ? 'Signing in…' : 'Discover your CPN'}
             </button>
           </div>
         </div>

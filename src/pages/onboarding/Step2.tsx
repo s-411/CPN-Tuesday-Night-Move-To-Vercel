@@ -61,6 +61,7 @@ export function Step2() {
             loading={loading}
             error={error}
             submitLabel="Continue to Step 3"
+            showPreview={false}
           />
         </div>
         <div className="flex justify-between mt-4">

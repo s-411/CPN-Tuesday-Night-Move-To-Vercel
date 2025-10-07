@@ -103,10 +103,11 @@ function AppContent() {
     }
   }, [user, pathname]);
 
-  // Prevent signed-in users from visiting onboarding steps
+  // Prevent signed-in users from visiting onboarding steps, except allow Step 4 after onboarding auth
   useEffect(() => {
-    if (user && pathname.startsWith('/step-')) {
-      goTo('/');
+    if (!user) return;
+    if (pathname.startsWith('/step-') && pathname !== '/step-4') {
+      goTo('/step-4');
     }
   }, [user, pathname]);
 
