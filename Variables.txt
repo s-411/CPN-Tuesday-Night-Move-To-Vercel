@@ -1,5 +1,5 @@
 SUPABASE
-
+Access token: sbp_9b50d05776535e0c9162617bb423715be38b8d97
 https://mgcmkwrtjpkxmjjixyiy.supabase.co/
 ID: mgcmkwrtjpkxmjjixyiy
 PASSWORD: wu^IuHiV2nJaUvzN
@@ -10,6 +10,15 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nY21rd3J
 
 Service Role Secret:
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nY21rd3J0anBreG1qaml4eWl5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTgyOTc0MSwiZXhwIjoyMDc1NDA1NzQxfQ.YQ3aqlJJS6QVLaEagdsScHeHNBej8LdYghnlgV-NwnQ
+
+sk_test_51SBZu24N2PMxx1mWd8AMMajjE8hrDu1pPKVkBZFlplMAf6S09EDgoVUQRexRb71rwgnWGCdw3o8nOOYbZDfQoWCu00tP4kAykG
+
+
+WEBHOOK - Sandbox
+STRIPE_WEBHOOK_SECRET
+https://mgcmkwrtjpkxmjjixyiy.supabase.co/functions/v1/stripe-webhook
+whsec_udYgaUWfklxqkOXmYlInZsc1niQWGjHY
+
 
 
 /***STRIPE TEST MODE***/
