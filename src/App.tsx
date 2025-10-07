@@ -28,6 +28,11 @@ import { supabase } from './lib/supabase/client';
 import { Database } from './lib/types/database';
 import { calculateCostPerNut, calculateTimePerNut, calculateCostPerHour, formatCurrency, formatRating } from './lib/calculations';
 import { exportGirlsData } from './lib/export';
+import { goTo } from './lib/navigation';
+import { Step1 } from './pages/onboarding/Step1';
+import { Step2 } from './pages/onboarding/Step2';
+import { Step3 } from './pages/onboarding/Step3';
+import { Step4 } from './pages/onboarding/Step4';
 
 type Girl = Database['public']['Tables']['girls']['Row'];
 type DataEntry = Database['public']['Tables']['data_entries']['Row'];
@@ -55,6 +60,7 @@ function AppContent() {
   const [addingDataForGirl, setAddingDataForGirl] = useState<GirlWithMetrics | null>(null);
   const [girls, setGirls] = useState<GirlWithMetrics[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pathname, setPathname] = useState<string>(typeof window !== 'undefined' ? window.location.pathname : '/');
 
   useEffect(() => {
     if (user) {
@@ -63,12 +69,18 @@ function AppContent() {
   }, [user]);
 
   useEffect(() => {
-    const path = window.location.pathname;
+    const path = pathname;
     if (path === '/password-update') {
       setAuthView('passwordupdate');
     } else if (path === '/reset-password') {
       setAuthView('resetpassword');
     }
+  }, [pathname]);
+
+  useEffect(() => {
+    const onPop = () => setPathname(window.location.pathname);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
   }, []);
 
   useEffect(() => {
@@ -83,6 +95,20 @@ function AppContent() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  // Redirect unauthenticated users from /signup to onboarding /step-1
+  useEffect(() => {
+    if (!user && pathname === '/signup') {
+      goTo('/step-1');
+    }
+  }, [user, pathname]);
+
+  // Prevent signed-in users from visiting onboarding steps
+  useEffect(() => {
+    if (user && pathname.startsWith('/step-')) {
+      goTo('/');
+    }
+  }, [user, pathname]);
 
   const loadGirls = async () => {
     if (!user) return;
@@ -173,6 +199,20 @@ function AppContent() {
   if (!user) {
     if (isSubscriptionSuccessPage()) {
       return <SubscriptionSuccess />;
+    }
+
+    // Onboarding steps for unauthenticated users
+    if (pathname === '/step-1') {
+      return <Step1 />;
+    }
+    if (pathname === '/step-2') {
+      return <Step2 />;
+    }
+    if (pathname === '/step-3') {
+      return <Step3 />;
+    }
+    if (pathname === '/step-4') {
+      return <Step4 />;
     }
 
     if (authView === 'signup') {
