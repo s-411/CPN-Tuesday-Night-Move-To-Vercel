@@ -40,8 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       setProfile(data);
 
-      if (data && !data.has_seen_paywall) {
-        setShowPaywall(true);
+      if (data) {
+        const tier = data.subscription_tier as string | null;
+        const isFreeTier = tier === 'boyfriend' || tier === 'free' || !tier;
+        if (!data.has_seen_paywall && isFreeTier) {
+          setShowPaywall(true);
+        } else {
+          setShowPaywall(false);
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -74,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchProfile(session.user.id);
       } else {
         setProfile(null);
+        setShowPaywall(false);
       }
       setLoading(false);
     });

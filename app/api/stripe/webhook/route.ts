@@ -74,6 +74,8 @@ export async function POST(request: NextRequest) {
             stripe_subscription_id: subscription.id,
             subscription_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
             subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            has_seen_paywall: true,
+            stripe_price_id: (subscription.items?.data?.[0]?.price?.id as string) || null,
           })
           .eq('id', userId);
 

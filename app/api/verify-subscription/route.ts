@@ -76,6 +76,28 @@ export async function GET(request: NextRequest) {
         console.error('Error fetching user data:', userError);
       }
 
+      // Fallback: update user immediately based on subscription status
+      if (subscription.status === 'active') {
+        const priceId = subscription.items?.data?.[0]?.price?.id as string | undefined;
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({
+            subscription_tier: 'player',
+            subscription_status: 'active',
+            subscription_plan_type: (session.metadata?.plan_type as 'weekly' | 'annual') || null,
+            stripe_customer_id: session.customer as string,
+            stripe_subscription_id: subscription.id,
+            subscription_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            has_seen_paywall: true,
+            stripe_price_id: priceId || null,
+          })
+          .eq('id', user.id);
+        if (updateError) {
+          console.error('Fallback verify update failed:', updateError);
+        }
+      }
+
       return NextResponse.json({
         success: true,
         status: subscription.status,

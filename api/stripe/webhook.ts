@@ -69,6 +69,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
 
+        const priceId = subscription.items?.data?.[0]?.price?.id as string | undefined;
+
         const { error } = await supabase
           .from('users')
           .update({
@@ -79,6 +81,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             stripe_subscription_id: subscription.id,
             subscription_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
             subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            has_seen_paywall: true,
+            stripe_price_id: priceId || null,
           })
           .eq('id', userId);
 
