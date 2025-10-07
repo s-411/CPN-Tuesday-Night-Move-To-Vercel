@@ -28,6 +28,7 @@ import { supabase } from './lib/supabase/client';
 import { Database } from './lib/types/database';
 import { calculateCostPerNut, calculateTimePerNut, calculateCostPerHour, formatCurrency, formatRating } from './lib/calculations';
 import { exportGirlsData } from './lib/export';
+import { getStep1 as getOnboardStep1, getStep2 as getOnboardStep2 } from './lib/onboarding/session';
 import { goTo } from './lib/navigation';
 import { Step1 } from './pages/onboarding/Step1';
 import { Step2 } from './pages/onboarding/Step2';
@@ -110,6 +111,20 @@ function AppContent() {
       goTo('/step-4');
     }
   }, [user, pathname]);
+
+  // If user just signed in and onboarding data exists in sessionStorage, ensure they land on Step 4
+  useEffect(() => {
+    if (!user) return;
+    try {
+      const s1 = getOnboardStep1();
+      const s2 = getOnboardStep2();
+      if (s1 && s2 && pathname !== '/step-4') {
+        goTo('/step-4');
+      }
+    } catch {
+      // ignore sessionStorage access issues
+    }
+  }, [user]);
 
   const loadGirls = async () => {
     if (!user) return;
@@ -269,6 +284,11 @@ function AppContent() {
 
   if (isSubscriptionSuccessPage()) {
     return <SubscriptionSuccess />;
+  }
+
+  // When signed-in, render Step 4 if the URL requests it (onboarding result)
+  if (pathname === '/step-4') {
+    return <Step4 />;
   }
 
   const canAddGirl = profile?.subscription_tier === 'boyfriend' ? activeGirls.length < 1 : activeGirls.length < 50;
