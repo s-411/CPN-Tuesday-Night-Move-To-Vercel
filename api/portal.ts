@@ -13,6 +13,14 @@ function requireEnv(name: string): string {
   return value;
 }
 
+function ensureAbsoluteUrl(input: string): string {
+  if (!input) return input;
+  const hasScheme = /^https?:\/\//i.test(input);
+  if (hasScheme) return input;
+  if (input.startsWith('//')) return `https:${input}`;
+  return `https://${input}`;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method !== 'POST') {
@@ -66,7 +74,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const stripe = new Stripe(stripeSecretKey);
-    const returnUrl = appUrl || `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`;
+    const inferredHost = `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`;
+    const returnUrl = ensureAbsoluteUrl(appUrl || inferredHost);
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,

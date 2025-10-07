@@ -13,6 +13,15 @@ function requireEnv(name: string): string {
   return value;
 }
 
+function ensureAbsoluteUrl(input: string): string {
+  if (!input) return input;
+  const hasScheme = /^https?:\/\//i.test(input);
+  if (hasScheme) return input;
+  // Handle protocol-relative or bare domains/paths
+  if (input.startsWith('//')) return `https:${input}`;
+  return `https://${input}`;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method !== 'POST') {
@@ -91,15 +100,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .eq('id', user.id);
     }
 
-    const baseUrl = successUrl || appUrl || `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`;
-    const cancelBase = cancelUrl || appUrl || baseUrl;
+    const inferredHost = `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`;
+    const resolvedAppUrl = appUrl ? ensureAbsoluteUrl(appUrl) : inferredHost;
+    const baseUrl = successUrl ? ensureAbsoluteUrl(successUrl) : resolvedAppUrl;
+    const cancelBase = cancelUrl ? ensureAbsoluteUrl(cancelUrl) : resolvedAppUrl;
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
-      success_url: successUrl || `${baseUrl}?page=subscription-success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${cancelBase}`,
+      success_url: successUrl ? ensureAbsoluteUrl(successUrl) : `${baseUrl}?page=subscription-success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl ? ensureAbsoluteUrl(cancelUrl) : `${cancelBase}`,
       metadata: { supabase_user_id: user.id, plan_type: planType },
       subscription_data: { metadata: { supabase_user_id: user.id, plan_type: planType } },
     });
