@@ -1,0 +1,105 @@
+# ============================================
+# VERCEL ENVIRONMENT VARIABLES
+# ============================================
+# Copy these into Vercel Dashboard when deploying
+# Go to: vercel.com → Your Project → Settings → Environment Variables
+# Add each one for Production, Preview, and Development
+
+# ============================================
+# SUPABASE (Same for all environments)
+# ============================================
+
+NEXT_PUBLIC_SUPABASE_URL
+https://mgcmkwrtjpkxmjjixyiy.supabase.co
+
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nY21rd3J0anBreG1qaml4eWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4Mjk3NDEsImV4cCI6MjA3NTQwNTc0MX0.RxpnM8n62eEzACbBcF9qIDx3Wq35nSKUkZJFkd5wTUs
+
+SUPABASE_SERVICE_ROLE_KEY
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nY21rd3J0anBreG1qaml4eWl5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTgyOTc0MSwiZXhwIjoyMDc1NDA1NzQxfQ.YQ3aqlJJS6QVLaEagdsScHeHNBej8LdYghnlgV-NwnQ
+
+# ============================================
+# STRIPE - TEST MODE (for Preview/Development)
+# ============================================
+
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+pk_test_51SBZu24N2PMxx1mWg6SWjDRlCnQEzz2hC1pzqE32Qko010VDwNgOoDKEgewCqKcoJayoMEP6CYWL5zoxbhAupc2v00jvk8rlcK
+
+STRIPE_SECRET_KEY
+sk_test_51SBZu24N2PMxx1mWd8AMMajjE8hrDu1pPKVkBZFlplMAf6S09EDgoVUQRexRb71rwgnWGCdw3o8nOOYbZDfQoWCu00tP4kAykG
+
+NEXT_PUBLIC_STRIPE_PRICE_PLAYER_MODE_WEEKLY
+price_1SBdEy4N2PMxx1mWPFLurfxX
+
+NEXT_PUBLIC_STRIPE_PRICE_PLAYER_MODE_ANNUAL
+price_1SBdEz4N2PMxx1mWQLpPCYCr
+
+# ============================================
+# STRIPE - LIVE MODE (for Production ONLY)
+# ============================================
+# ⚠️ IMPORTANT: Only use these for Production environment!
+# ⚠️ Real payments will be charged!
+
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+pk_live_51O0BVAGLPZ8QyJKVGsTVJZYOCKZ6Sh494e2HMu4AFV5FtfgG6ws7wOCmWfQhp5hPog7UNz9t4NwGGj6M4JwhnZdB00KwMeUXJI
+
+STRIPE_SECRET_KEY
+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
+
+# ⚠️ NOTE: Your Variables.txt has PRODUCT IDs (prod_xxx) but you need PRICE IDs!
+# Go to: https://dashboard.stripe.com/products (switch to LIVE mode)
+# Click on each product and copy the PRICE ID (starts with price_)
+
+NEXT_PUBLIC_STRIPE_PRICE_PLAYER_MODE_WEEKLY
+price_REPLACE_WITH_LIVE_WEEKLY_PRICE_ID
+
+NEXT_PUBLIC_STRIPE_PRICE_PLAYER_MODE_ANNUAL
+price_REPLACE_WITH_LIVE_ANNUAL_PRICE_ID
+
+# ============================================
+# STRIPE WEBHOOK SECRET
+# ============================================
+# Get this AFTER creating the webhook in Stripe Dashboard
+# Test Mode webhook: Use different secret from Dashboard
+# Live Mode webhook: Create at https://dashboard.stripe.com/webhooks
+
+STRIPE_WEBHOOK_SECRET
+whsec_REPLACE_WITH_WEBHOOK_SECRET_FROM_STRIPE_DASHBOARD
+
+# ============================================
+# APP CONFIGURATION
+# ============================================
+
+NEXT_PUBLIC_APP_URL
+https://your-domain.vercel.app
+
+# ============================================
+# FEATURE FLAGS (Optional)
+# ============================================
+
+NEXT_PUBLIC_ENABLE_ANONYMOUS_ONBOARDING
+false
+
+# ============================================
+# HOW TO ADD TO VERCEL
+# ============================================
+# 
+# 1. Go to: vercel.com → Your Project → Settings → Environment Variables
+# 
+# 2. Click "Add New"
+# 
+# 3. For each variable above:
+#    - Name: Copy the variable name (e.g., NEXT_PUBLIC_SUPABASE_URL)
+#    - Value: Copy the value below the name
+#    - Environments: Select where to use it:
+#      * Production: Use LIVE Stripe keys
+#      * Preview: Use TEST Stripe keys
+#      * Development: Use TEST Stripe keys
+# 
+# 4. Important notes:
+#    - Use TEST Stripe keys for Preview and Development
+#    - Use LIVE Stripe keys ONLY for Production
+#    - Update NEXT_PUBLIC_APP_URL for each environment
+#    - Get LIVE mode PRICE IDs from Stripe Dashboard
+#
+
