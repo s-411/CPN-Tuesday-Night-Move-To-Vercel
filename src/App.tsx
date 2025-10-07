@@ -600,6 +600,7 @@ function SettingsView({ profile, girls, onSignOut }: { profile: any; girls: any[
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
       });
 

@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { SubscriptionCard } from '../components/SubscriptionCard';
 import { SubscriptionStatus } from '../components/SubscriptionStatus';
 import { STRIPE_PRODUCTS } from '../stripe-config';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 
 export const SubscriptionPage: React.FC = () => {
@@ -38,10 +38,14 @@ export const SubscriptionPage: React.FC = () => {
 
   const handleSubscribe = async (priceId: string) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
       const response = await fetch(`/api/checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           priceId,

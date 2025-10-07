@@ -37,6 +37,7 @@ export default function UpgradeModal({ isOpen, onClose, featureName = 'this feat
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({ priceId, planType }),
         }

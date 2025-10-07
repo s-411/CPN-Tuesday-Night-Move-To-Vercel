@@ -28,6 +28,7 @@ export default function SubscriptionSuccess() {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authSession.access_token}`,
         },
       });
 

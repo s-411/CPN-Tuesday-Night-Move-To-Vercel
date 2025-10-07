@@ -8,9 +8,9 @@ export function validateStripeConfig(): StripeConfigValidation {
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-  const weeklyPriceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_PLAYER_MODE_WEEKLY;
-  const annualPriceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_PLAYER_MODE_ANNUAL;
+  const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
+  const weeklyPriceId = import.meta.env.VITE_STRIPE_PRICE_PLAYER_MODE_WEEKLY as string | undefined;
+  const annualPriceId = import.meta.env.VITE_STRIPE_PRICE_PLAYER_MODE_ANNUAL as string | undefined;
 
   if (!publishableKey || publishableKey.length === 0) {
     errors.push('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set');
@@ -44,7 +44,7 @@ export function validateStripeConfig(): StripeConfigValidation {
 }
 
 export function logStripeConfigStatus(): void {
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     const validation = validateStripeConfig();
 
     if (!validation.isValid) {

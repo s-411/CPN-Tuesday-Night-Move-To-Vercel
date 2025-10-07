@@ -1,11 +1,9 @@
-import { env } from '../../../lib/env';
-
 export const STRIPE_CONFIG = {
-  publishableKey: env.stripe.publishableKey || '',
+  publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
 
   prices: {
-    playerModeWeekly: env.stripe.prices.playerModeWeekly || '',
-    playerModeAnnual: env.stripe.prices.playerModeAnnual || '',
+    playerModeWeekly: import.meta.env.VITE_STRIPE_PRICE_PLAYER_MODE_WEEKLY || '',
+    playerModeAnnual: import.meta.env.VITE_STRIPE_PRICE_PLAYER_MODE_ANNUAL || '',
   },
 
   plans: {
