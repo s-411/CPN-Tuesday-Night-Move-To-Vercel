@@ -34,6 +34,7 @@ import { Step1 } from './pages/onboarding/Step1';
 import { Step2 } from './pages/onboarding/Step2';
 import { Step3 } from './pages/onboarding/Step3';
 import { Step4 } from './pages/onboarding/Step4';
+import { WelcomePremium } from './pages/WelcomePremium';
 
 type Girl = Database['public']['Tables']['girls']['Row'];
 type DataEntry = Database['public']['Tables']['data_entries']['Row'];
@@ -104,11 +105,22 @@ function AppContent() {
     }
   }, [user, pathname]);
 
-  // Prevent signed-in users from visiting onboarding steps, except allow Step 4 after onboarding auth
+  // Redirect signed-in users from onboarding steps to Step 4 only if they have active onboarding data
   useEffect(() => {
     if (!user) return;
     if (pathname.startsWith('/step-') && pathname !== '/step-4') {
-      goTo('/step-4');
+      // Check if there's onboarding data in sessionStorage
+      try {
+        const s1 = getOnboardStep1();
+        const s2 = getOnboardStep2();
+        // Only redirect to Step 4 if they have onboarding data
+        if (s1 && s2) {
+          goTo('/step-4');
+        }
+        // Otherwise, allow them to access onboarding steps to restart flow
+      } catch {
+        // If sessionStorage access fails, do nothing
+      }
     }
   }, [user, pathname]);
 
@@ -230,6 +242,9 @@ function AppContent() {
     if (pathname === '/step-4') {
       return <Step4 />;
     }
+    if (pathname === '/welcome-premium') {
+      return <WelcomePremium />;
+    }
 
     if (authView === 'signup') {
       return (
@@ -284,6 +299,11 @@ function AppContent() {
 
   if (isSubscriptionSuccessPage()) {
     return <SubscriptionSuccess />;
+  }
+
+  // Welcome page after successful premium subscription
+  if (pathname === '/welcome-premium') {
+    return <WelcomePremium />;
   }
 
   // When signed-in, render Step 4 if the URL requests it (onboarding result)

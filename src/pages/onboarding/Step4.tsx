@@ -5,6 +5,7 @@ import { calculateCostPerNut, calculateTimePerNut, calculateCostPerHour, formatC
 import { STRIPE_CONFIG } from '../../lib/stripe/config';
 import { supabase } from '../../lib/supabase/client';
 import { commitOnboardingToSupabase } from '../../lib/onboarding/commit';
+import { OnboardingLayout } from '../../components/OnboardingLayout';
 
 export function Step4() {
   const s1 = getStep1();
@@ -28,25 +29,36 @@ export function Step4() {
   const timePerNut = calculateTimePerNut(totalMinutes, nuts);
   const costPerHour = calculateCostPerHour(amount, totalMinutes);
 
-  const [status, setStatus] = useState(getState()?.commitStatus || 'idle');
+  const [status, setStatus] = useState(getState()?.commitStatus || 'success');
   const [message, setMessage] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
 
+  // Data already committed in Step 3, just display results
   useEffect(() => {
-    if (status === 'idle') {
-      setStatus('in-progress');
-      setState({ commitStatus: 'in-progress', v: 1 });
-      commitOnboardingToSupabase().then((res) => {
-        if (res.ok) {
-          setStatus('success');
-          setState({ commitStatus: 'success', v: 1 });
-        } else {
-          setStatus('error');
-          setState({ commitStatus: 'error', v: 1 });
-          setMessage(res.errorMessage || 'Failed to save to your account. You can finish and add data later.');
-        }
-      });
+    const state = getState();
+    if (state?.commitStatus) {
+      setStatus(state.commitStatus);
     }
   }, []);
+
+  const retryCommit = async () => {
+    setRetrying(true);
+    setStatus('in-progress');
+    setState({ commitStatus: 'in-progress', v: 1 });
+    
+    const res = await commitOnboardingToSupabase();
+    
+    if (res.ok) {
+      setStatus('success');
+      setState({ commitStatus: 'success', v: 1 });
+      setMessage(null);
+    } else {
+      setStatus('error');
+      setState({ commitStatus: 'error', v: 1 });
+      setMessage(res.errorMessage || 'Failed to save to your account.');
+    }
+    setRetrying(false);
+  };
 
   const finish = () => {
     clearOnboarding();
@@ -82,91 +94,131 @@ export function Step4() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-6">
-      <div className="w-full max-w-2xl">
-        <h1 className="text-3xl mb-2">Your CPN</h1>
-        <p className="text-cpn-gray mb-6">Step 4 of 4</p>
+    <OnboardingLayout step={4}>
+      <div className="max-w-4xl mx-auto">
+        {/* Results Card */}
+        <div className="card-cpn mb-8">
+          <div className="text-center mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold mb-2">Your CPN Result</h1>
+            {s1 && (
+              <p className="text-cpn-gray">For <span className="text-white font-semibold">{s1.name}</span></p>
+            )}
+          </div>
 
-        <div className="card-cpn">
-          {s1 && (
-            <div className="mb-4">
-              <p className="text-sm text-cpn-gray">For</p>
-              <p className="text-xl font-bold">{s1.name}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="text-center p-6 bg-cpn-dark rounded-lg">
+              <p className="text-sm text-cpn-gray mb-2">Cost/Nut</p>
+              <p className="text-4xl md:text-6xl font-extrabold text-cpn-yellow">{formatCurrency(costPerNut)}</p>
+            </div>
+            <div className="text-center p-6 bg-cpn-dark rounded-lg">
+              <p className="text-sm text-cpn-gray mb-2">Time/Nut</p>
+              <p className="text-3xl md:text-4xl font-bold">{timePerNut.toFixed(1)}m</p>
+            </div>
+            <div className="text-center p-6 bg-cpn-dark rounded-lg">
+              <p className="text-sm text-cpn-gray mb-2">Cost/Hour</p>
+              <p className="text-3xl md:text-4xl font-bold">{formatCurrency(costPerHour)}</p>
+            </div>
+          </div>
+
+          {status === 'in-progress' && (
+            <div className="p-3 bg-blue-500/10 border border-blue-500/50 rounded">
+              <p className="text-sm text-blue-400">💾 Saving to your account…</p>
             </div>
           )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div className="p-4">
-              <p className="text-xs text-cpn-gray mb-1">Cost/Nut</p>
-              <p className="text-3xl md:text-5xl font-extrabold text-cpn-yellow">{formatCurrency(costPerNut)}</p>
+          {status === 'success' && (
+            <div className="p-3 bg-green-500/10 border border-green-500/50 rounded">
+              <p className="text-sm text-green-400">✓ Saved to your account!</p>
             </div>
-            <div className="p-4">
-              <p className="text-xs text-cpn-gray mb-1">Time/Nut</p>
-              <p className="text-2xl md:text-3xl font-bold">{timePerNut.toFixed(1)}m</p>
+          )}
+          {status === 'error' && (
+            <div className="p-3 bg-red-500/10 border border-red-500/50 rounded">
+              <p className="text-sm text-red-400 mb-2">{message || 'Failed to save data'}</p>
+              <button 
+                className="btn-secondary text-sm py-1 px-3"
+                onClick={retryCommit}
+                disabled={retrying}
+              >
+                {retrying ? 'Retrying...' : 'Retry Save'}
+              </button>
             </div>
-            <div className="p-4">
-              <p className="text-xs text-cpn-gray mb-1">Cost/Hour</p>
-              <p className="text-2xl md:text-3xl font-bold">{formatCurrency(costPerHour)}</p>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            {status === 'in-progress' && (
-              <p className="text-sm text-cpn-gray">Saving to your account…</p>
-            )}
-            {status === 'success' && (
-              <p className="text-sm text-green-400">Saved to your account.</p>
-            )}
-            {status === 'error' && (
-              <p className="text-sm text-red-400">{message}</p>
-            )}
-          </div>
-
-          <div className="flex justify-end mt-6">
-            <button className="btn-cpn" onClick={finish}>Finish</button>
-          </div>
+          )}
         </div>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-lg border border-zinc-700 bg-zinc-800/40">
-            <h3 className="text-lg font-bold mb-1">Boyfriend Mode</h3>
-            <p className="text-sm text-cpn-gray mb-3">Free</p>
-            <ul className="text-sm text-cpn-gray mb-4 list-disc pl-5">
-              {STRIPE_CONFIG.plans.boyfriend.features.map((f, i) => (
-                <li key={i}>{f}</li>
-              ))}
-            </ul>
-            <button className="btn-secondary w-full" onClick={finish}>Keep Free</button>
-          </div>
+        {/* Subscription Options */}
+        <div className="mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-2">Choose Your Mode</h2>
+          <p className="text-cpn-gray text-center mb-6">Unlock more features with Player Mode</p>
 
-          <div className="p-4 rounded-lg border border-[var(--color-cpn-yellow)] bg-zinc-800/60">
-            <h3 className="text-lg font-bold mb-1">{STRIPE_CONFIG.plans.playerWeekly.name}</h3>
-            <p className="text-sm text-cpn-gray mb-3">{STRIPE_CONFIG.plans.playerWeekly.billing}</p>
-            <p className="text-2xl font-bold text-[var(--color-cpn-yellow)] mb-1">{STRIPE_CONFIG.plans.playerWeekly.price}</p>
-            <p className="text-xs text-cpn-gray mb-3">{STRIPE_CONFIG.plans.playerWeekly.pricePerWeek}</p>
-            <ul className="text-sm text-cpn-gray mb-4 list-disc pl-5">
-              {STRIPE_CONFIG.plans.playerWeekly.features.map((f, i) => (
-                <li key={i}>{f}</li>
-              ))}
-            </ul>
-            <button className="btn-cpn w-full" onClick={() => startCheckout('weekly')}>Activate Weekly</button>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Boyfriend Mode - Free */}
+            <div className="card-cpn border-zinc-700">
+              <div className="mb-4">
+                <h3 className="text-xl font-bold mb-1">Boyfriend Mode</h3>
+                <p className="text-2xl font-bold text-cpn-yellow">Free</p>
+                <p className="text-sm text-cpn-gray">Forever</p>
+              </div>
+              <ul className="text-sm text-cpn-gray mb-6 space-y-2">
+                {STRIPE_CONFIG.plans.boyfriend.features.map((f, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-cpn-gray">•</span>
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <button className="btn-secondary w-full py-3" onClick={finish}>
+                Keep Free
+              </button>
+            </div>
 
-          <div className="p-4 rounded-lg border border-zinc-700 bg-zinc-800/40">
-            <h3 className="text-lg font-bold mb-1">{STRIPE_CONFIG.plans.playerAnnual.name}</h3>
-            <p className="text-sm text-cpn-gray mb-3">{STRIPE_CONFIG.plans.playerAnnual.billing}</p>
-            <p className="text-2xl font-bold text-[var(--color-cpn-yellow)] mb-1">{STRIPE_CONFIG.plans.playerAnnual.price}</p>
-            <p className="text-xs text-cpn-gray mb-3">{STRIPE_CONFIG.plans.playerAnnual.pricePerWeek} • {STRIPE_CONFIG.plans.playerAnnual.savings}</p>
-            <ul className="text-sm text-cpn-gray mb-4 list-disc pl-5">
-              {STRIPE_CONFIG.plans.playerAnnual.features.map((f, i) => (
-                <li key={i}>{f}</li>
-              ))}
-            </ul>
-            <button className="btn-cpn w-full" onClick={() => startCheckout('annual')}>Activate Annual</button>
+            {/* Player Mode Weekly - Highlighted */}
+            <div className="card-cpn border-[var(--color-cpn-yellow)] bg-[var(--color-cpn-yellow)]/5">
+              <div className="mb-4">
+                <div className="inline-block px-2 py-1 bg-cpn-yellow text-cpn-dark text-xs font-bold rounded mb-2">
+                  RECOMMENDED
+                </div>
+                <h3 className="text-xl font-bold mb-1">{STRIPE_CONFIG.plans.playerWeekly.name}</h3>
+                <p className="text-3xl font-bold text-cpn-yellow">{STRIPE_CONFIG.plans.playerWeekly.price}</p>
+                <p className="text-sm text-cpn-gray">per week</p>
+              </div>
+              <ul className="text-sm text-cpn-gray mb-6 space-y-2">
+                {STRIPE_CONFIG.plans.playerWeekly.features.map((f, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-cpn-yellow">✓</span>
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <button className="btn-cpn w-full py-3 text-lg" onClick={() => startCheckout('weekly')}>
+                Activate Weekly
+              </button>
+            </div>
+
+            {/* Player Mode Annual - Best Value */}
+            <div className="card-cpn border-zinc-700">
+              <div className="mb-4">
+                <div className="inline-block px-2 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded mb-2">
+                  {STRIPE_CONFIG.plans.playerAnnual.savings}
+                </div>
+                <h3 className="text-xl font-bold mb-1">{STRIPE_CONFIG.plans.playerAnnual.name}</h3>
+                <p className="text-3xl font-bold text-cpn-yellow">{STRIPE_CONFIG.plans.playerAnnual.price}</p>
+                <p className="text-sm text-cpn-gray">per year ({STRIPE_CONFIG.plans.playerAnnual.pricePerWeek})</p>
+              </div>
+              <ul className="text-sm text-cpn-gray mb-6 space-y-2">
+                {STRIPE_CONFIG.plans.playerAnnual.features.map((f, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-cpn-yellow">✓</span>
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <button className="btn-cpn w-full py-3" onClick={() => startCheckout('annual')}>
+                Activate Annual
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </OnboardingLayout>
   );
 }
 

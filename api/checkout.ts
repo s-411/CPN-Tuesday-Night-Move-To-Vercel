@@ -109,8 +109,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
-      success_url: successUrl ? ensureAbsoluteUrl(successUrl) : `${baseUrl}?page=subscription-success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl ? ensureAbsoluteUrl(cancelUrl) : `${cancelBase}`,
+      success_url: successUrl ? ensureAbsoluteUrl(successUrl) : `${baseUrl}/welcome-premium`,
+      cancel_url: cancelUrl ? ensureAbsoluteUrl(cancelUrl) : `${cancelBase}/step-4`,
       metadata: { supabase_user_id: user.id, plan_type: planType },
       subscription_data: { metadata: { supabase_user_id: user.id, plan_type: planType } },
     });

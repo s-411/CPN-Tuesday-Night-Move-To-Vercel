@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { goTo } from '../../lib/navigation';
 import { DataEntryForm, DataEntryFormValue } from '../../components/forms/DataEntryForm';
 import { getStep1, getStep2, setStep2 } from '../../lib/onboarding/session';
+import { OnboardingLayout } from '../../components/OnboardingLayout';
 
 export function Step2() {
   const [form, setForm] = useState<DataEntryFormValue>(() => {
@@ -12,6 +13,7 @@ export function Step2() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     // Gate: require step 1
@@ -45,30 +47,44 @@ export function Step2() {
     }
     setLoading(true);
     setStep2({ ...form, v: 1 });
-    goTo('/step-3');
+    setSuccess(true);
+    
+    // Auto-redirect to next step
+    setTimeout(() => {
+      goTo('/step-3');
+    }, 800);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-6">
-      <div className="w-full max-w-2xl">
+    <OnboardingLayout step={2}>
+      <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl mb-2">Add Data</h1>
-        <p className="text-cpn-gray mb-6">Step 2 of 4</p>
+        <p className="text-cpn-gray mb-6">Enter your first encounter data</p>
+        
+        {success && (
+          <div className="mb-4 p-4 bg-green-500/10 border border-green-500/50 rounded-lg">
+            <p className="text-green-400 text-sm flex items-center gap-2">
+              <span>✓</span> Saved! Moving to next step...
+            </p>
+          </div>
+        )}
+        
         <div className="card-cpn">
           <DataEntryForm
             value={form}
             onChange={setForm}
             onSubmit={handleSubmit}
-            loading={loading}
+            loading={loading || success}
             error={error}
-            submitLabel="Continue to Step 3"
-            showPreview={false}
+            submitLabel={success ? 'Redirecting...' : 'Continue'}
+            showPreview={true}
           />
         </div>
         <div className="flex justify-between mt-4">
-          <button className="btn-secondary" onClick={() => goTo('/step-1')}>Back</button>
+          <button className="btn-secondary" onClick={() => goTo('/step-1')}>Back to Step 1</button>
         </div>
       </div>
-    </div>
+    </OnboardingLayout>
   );
 }
 

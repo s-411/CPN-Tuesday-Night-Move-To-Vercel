@@ -17,12 +17,12 @@ export default function SubscriptionGate({ children, isLocked, featureName }: Su
 
   return (
     <>
-      <div className="relative">
+      <div className="relative min-h-[60vh]">
         <div className="filter blur-sm pointer-events-none select-none opacity-40">
           {children}
         </div>
 
-        <div className="fixed top-24 left-0 right-0 flex justify-center z-50 px-4">
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-50 px-4">
           <div className="text-center max-w-md w-full p-8 bg-zinc-900/95 rounded-[8px] border border-zinc-800 backdrop-blur-sm shadow-2xl">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-[var(--color-cpn-yellow)]/10 rounded-full mb-4">
               <Lock className="w-8 h-8 text-[var(--color-cpn-yellow)]" />
