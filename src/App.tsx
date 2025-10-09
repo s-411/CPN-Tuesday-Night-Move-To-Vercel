@@ -71,6 +71,31 @@ function AppContent() {
     }
   }, [user]);
 
+  // Realtime subscriptions for instant data updates across all views
+  useEffect(() => {
+    if (!user) return;
+
+    let debounceTimeout: number | undefined;
+    const scheduleReload = () => {
+      if (debounceTimeout) window.clearTimeout(debounceTimeout);
+      debounceTimeout = window.setTimeout(() => {
+        console.log('Realtime update detected - refreshing girls data');
+        loadGirls();
+      }, 150); // debounce to avoid thrashing on multiple rapid changes
+    };
+
+    const channel = supabase
+      .channel('app-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'data_entries' }, scheduleReload)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'girls' }, scheduleReload)
+      .subscribe();
+
+    return () => {
+      if (debounceTimeout) window.clearTimeout(debounceTimeout);
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
   useEffect(() => {
     const path = pathname;
     if (path === '/password-update') {
@@ -385,6 +410,7 @@ function AppContent() {
               setAddingDataForGirl(null);
               loadGirls();
             }}
+            onSaved={loadGirls}
           />
         ) : viewingGirl ? (
           <GirlDetail

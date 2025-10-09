@@ -10,6 +10,7 @@ type DataEntry = Database['public']['Tables']['data_entries']['Row'];
 interface AddDataPageProps {
   girlId: string;
   onBack: () => void;
+  onSaved?: () => void;
 }
 
 interface GirlWithMetrics extends Girl {
@@ -22,7 +23,7 @@ interface GirlWithMetrics extends Girl {
   entryCount: number;
 }
 
-export function AddDataPage({ girlId, onBack }: AddDataPageProps) {
+export function AddDataPage({ girlId, onBack, onSaved }: AddDataPageProps) {
   const [girl, setGirl] = useState<GirlWithMetrics | null>(null);
   const [entries, setEntries] = useState<DataEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -155,6 +156,7 @@ export function AddDataPage({ girlId, onBack }: AddDataPageProps) {
       setTimeout(() => setSuccess(false), 3000);
 
       await loadGirlData();
+      onSaved?.(); // Notify parent to refresh global state
     } catch (err: any) {
       setError(err.message || 'Failed to save data entry');
     } finally {
@@ -191,6 +193,7 @@ export function AddDataPage({ girlId, onBack }: AddDataPageProps) {
       if (deleteError) throw deleteError;
 
       await loadGirlData();
+      onSaved?.(); // Notify parent to refresh global state
     } catch (err: any) {
       console.error('Error deleting entry:', err);
       alert('Failed to delete entry');
