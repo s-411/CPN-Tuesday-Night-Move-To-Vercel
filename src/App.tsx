@@ -35,6 +35,7 @@ import { Step2 } from './pages/onboarding/Step2';
 import { Step3 } from './pages/onboarding/Step3';
 import { Step4 } from './pages/onboarding/Step4';
 import { WelcomePremium } from './pages/WelcomePremium';
+import { Welcome } from './pages/Welcome';
 
 type Girl = Database['public']['Tables']['girls']['Row'];
 type DataEntry = Database['public']['Tables']['data_entries']['Row'];
@@ -245,6 +246,9 @@ function AppContent() {
     if (pathname === '/welcome-premium') {
       return <WelcomePremium />;
     }
+    if (pathname === '/welcome') {
+      return <Welcome />;
+    }
 
     if (authView === 'signup') {
       return (
@@ -301,9 +305,13 @@ function AppContent() {
     return <SubscriptionSuccess />;
   }
 
-  // Welcome page after successful premium subscription
+  // Welcome pages after onboarding completion
   if (pathname === '/welcome-premium') {
     return <WelcomePremium />;
+  }
+
+  if (pathname === '/welcome') {
+    return <Welcome />;
   }
 
   // When signed-in, render Step 4 if the URL requests it (onboarding result)

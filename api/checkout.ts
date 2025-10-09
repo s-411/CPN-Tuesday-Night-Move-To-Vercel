@@ -24,6 +24,8 @@ function ensureAbsoluteUrl(input: string): string {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
+    console.log('[Checkout API] Request received:', { method: req.method, url: req.url });
+    
     if (req.method !== 'POST') {
       res.setHeader('Allow', 'POST');
       return res.status(405).json({ error: 'Method Not Allowed' });
@@ -34,6 +36,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supabaseAnonKey = getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY') || getEnv('VITE_SUPABASE_ANON_KEY');
     const supabaseServiceRole = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
     const appUrl = getEnv('VITE_APP_URL') || getEnv('NEXT_PUBLIC_APP_URL');
+    
+    console.log('[Checkout API] Environment check:', {
+      hasStripeKey: !!stripeSecretKey,
+      hasSupabaseUrl: !!supabaseUrl,
+      hasSupabaseAnonKey: !!supabaseAnonKey,
+      hasServiceRole: !!supabaseServiceRole,
+      appUrl,
+    });
 
     if (!supabaseUrl || !supabaseAnonKey) {
       return res.status(500).json({ error: 'Supabase URL or anon key not configured' });
@@ -44,7 +54,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? authHeader.slice('Bearer '.length)
       : undefined;
 
+    console.log('[Checkout API] Auth check:', { hasAuthHeader: !!authHeader, hasToken: !!token });
+
     if (!token) {
+      console.error('[Checkout API] No auth token provided');
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
@@ -55,9 +68,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { data: userData, error: authError } = await supabaseUser.auth.getUser(token);
     if (authError || !userData?.user) {
+      console.error('[Checkout API] Auth error:', authError?.message);
       return res.status(401).json({ error: 'Invalid token' });
     }
     const user = userData.user;
+    console.log('[Checkout API] User authenticated:', { userId: user.id, email: user.email });
 
     const { priceId, planType, successUrl, cancelUrl } = (req.body ?? {}) as {
       priceId?: string;
@@ -65,11 +80,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       successUrl?: string;
       cancelUrl?: string;
     };
+    
+    console.log('[Checkout API] Request body:', { priceId, planType, successUrl, cancelUrl });
 
     if (!priceId) {
+      console.error('[Checkout API] Missing priceId');
       return res.status(400).json({ error: 'Missing priceId - Stripe product configuration is incomplete' });
     }
     if (!planType || !['weekly', 'annual'].includes(planType)) {
+      console.error('[Checkout API] Invalid planType:', planType);
       return res.status(400).json({ error: 'Missing or invalid planType - Must be "weekly" or "annual"' });
     }
 
@@ -105,20 +124,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const baseUrl = successUrl ? ensureAbsoluteUrl(successUrl) : resolvedAppUrl;
     const cancelBase = cancelUrl ? ensureAbsoluteUrl(cancelUrl) : resolvedAppUrl;
 
+    const finalSuccessUrl = successUrl ? ensureAbsoluteUrl(successUrl) : `${baseUrl}/welcome-premium`;
+    const finalCancelUrl = cancelUrl ? ensureAbsoluteUrl(cancelUrl) : `${cancelBase}/step-4`;
+    
+    console.log('[Checkout API] Creating Stripe session:', {
+      customerId,
+      priceId,
+      successUrl: finalSuccessUrl,
+      cancelUrl: finalCancelUrl,
+    });
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
-      success_url: successUrl ? ensureAbsoluteUrl(successUrl) : `${baseUrl}/welcome-premium`,
-      cancel_url: cancelUrl ? ensureAbsoluteUrl(cancelUrl) : `${cancelBase}/step-4`,
+      success_url: finalSuccessUrl,
+      cancel_url: finalCancelUrl,
       metadata: { supabase_user_id: user.id, plan_type: planType },
       subscription_data: { metadata: { supabase_user_id: user.id, plan_type: planType } },
     });
 
+    console.log('[Checkout API] Session created successfully:', { sessionId: session.id, url: session.url });
     return res.status(200).json({ url: session.url });
   } catch (error: any) {
-    console.error('Checkout error:', error);
-    return res.status(500).json({ error: error?.message || 'Failed to create checkout session' });
+    console.error('[Checkout API] ERROR:', error);
+    console.error('[Checkout API] Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+      type: error?.type,
+      code: error?.code,
+    });
+    return res.status(500).json({ 
+      error: error?.message || 'Failed to create checkout session',
+      details: process.env.NODE_ENV === 'development' ? error?.stack : undefined,
+    });
   }
 }
 

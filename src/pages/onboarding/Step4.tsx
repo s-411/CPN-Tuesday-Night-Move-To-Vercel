@@ -61,8 +61,9 @@ export function Step4() {
   };
 
   const finish = () => {
-    clearOnboarding();
-    goTo('/');
+    // Don't clear onboarding here - let Welcome page read the data first
+    // Use full page reload to ensure fresh data is loaded from database
+    window.location.href = '/welcome';
   };
 
   const startCheckout = async (planType: 'weekly' | 'annual') => {
