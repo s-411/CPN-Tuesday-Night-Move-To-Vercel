@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, TrendingUp, Settings, BarChart3, Plus, CreditCard as Edit, Trash2, LogOut, Table, Share2, Globe, Trophy } from 'lucide-react';
+import { Users, TrendingUp, Settings, BarChart3, Plus, CreditCard as Edit, Trash2, LogOut, Table, Share2, Globe, Trophy, Menu } from 'lucide-react';
 import { isSubscriptionSuccessPage } from './lib/urlUtils';
 import UpgradeModal from './components/UpgradeModal';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -36,6 +36,7 @@ import { Step3 } from './pages/onboarding/Step3';
 import { Step4 } from './pages/onboarding/Step4';
 import { WelcomePremium } from './pages/WelcomePremium';
 import { Welcome } from './pages/Welcome';
+import { MobileMenu } from './pages/MobileMenu';
 
 type Girl = Database['public']['Tables']['girls']['Row'];
 type DataEntry = Database['public']['Tables']['data_entries']['Row'];
@@ -53,11 +54,12 @@ interface GirlWithMetrics extends Girl {
 function AppContent() {
   const { user, profile, loading: authLoading, signOut, showPaywall, setShowPaywall } = useAuth();
   const [authView, setAuthView] = useState<'signin' | 'signup' | 'resetpassword' | 'passwordupdate'>('signin');
-  const [activeView, setActiveView] = useState<'dashboard' | 'girls' | 'overview' | 'analytics' | 'dataentry' | 'datavault' | 'leaderboards' | 'share' | 'sharecenter' | 'settings'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'girls' | 'overview' | 'analytics' | 'dataentry' | 'datavault' | 'leaderboards' | 'share' | 'sharecenter' | 'settings' | 'mobilemenu'>('dashboard');
   const [showAddGirlModal, setShowAddGirlModal] = useState(false);
   const [showEditGirlModal, setShowEditGirlModal] = useState(false);
   const [showAddDataModal, setShowAddDataModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedGirl, setSelectedGirl] = useState<GirlWithMetrics | null>(null);
   const [viewingGirl, setViewingGirl] = useState<GirlWithMetrics | null>(null);
   const [addingDataForGirl, setAddingDataForGirl] = useState<GirlWithMetrics | null>(null);
@@ -163,6 +165,11 @@ function AppContent() {
       // ignore sessionStorage access issues
     }
   }, [user]);
+
+  // Scroll to top when navigating between views (mobile)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeView]);
 
   const loadGirls = async () => {
     if (!user) return;
@@ -436,6 +443,7 @@ function AppContent() {
                 onViewDetail={setViewingGirl}
                 canAddGirl={canAddGirl}
                 subscriptionTier={profile?.subscription_tier || 'free'}
+                onActivatePlayerMode={() => setShowUpgradeModal(true)}
               />
             )}
             {activeView === 'overview' && (
@@ -482,7 +490,17 @@ function AppContent() {
               </SubscriptionGate>
             )}
             {activeView === 'sharecenter' && <ShareCenter />}
-            {activeView === 'settings' && <SettingsView profile={profile} girls={girls} onSignOut={signOut} />}
+            {activeView === 'settings' && <SettingsView profile={profile} girls={girls} onSignOut={signOut} onActivatePlayerMode={() => setShowUpgradeModal(true)} />}
+            {activeView === 'mobilemenu' && (
+              <MobileMenu
+                activeView={activeView}
+                onNavigate={(view) => {
+                  setAddingDataForGirl(null);
+                  setActiveView(view);
+                }}
+                onSignOut={signOut}
+              />
+            )}
           </>
         )}
       </main>
@@ -490,33 +508,29 @@ function AppContent() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-cpn-dark px-2 py-3" style={{ borderTop: '1px solid rgba(171, 171, 171, 0.2)' }}>
         <div className="flex items-center justify-around">
           <div className={`mobile-nav-item ${activeView === 'dashboard' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('dashboard'); }}>
-            <TrendingUp size={20} />
-            <span className="text-xs">Home</span>
+            <Table size={20} />
+            <span className="text-xs">Dashboard</span>
           </div>
-          <div className={`mobile-nav-item ${activeView === 'dataentry' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('dataentry'); }}>
-            <Plus size={20} />
-            <span className="text-xs">Entry</span>
+          <div className={`mobile-nav-item ${activeView === 'girls' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('girls'); }}>
+            <Users size={20} />
+            <span className="text-xs">Girls</span>
           </div>
           <div
             className="flex items-center justify-center w-14 h-14 -mt-8 bg-cpn-yellow rounded-full cursor-pointer"
             onClick={() => {
-              if (canAddGirl) {
-                setShowAddGirlModal(true);
-              } else {
-                setAddingDataForGirl(null);
-                setActiveView('girls');
-              }
+              setAddingDataForGirl(null);
+              setActiveView('dataentry');
             }}
           >
             <Plus size={28} className="text-cpn-dark" />
           </div>
-          <div className={`mobile-nav-item ${activeView === 'share' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('share'); }}>
-            <Share2 size={20} />
-            <span className="text-xs">Share</span>
+          <div className={`mobile-nav-item ${activeView === 'analytics' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('analytics'); }}>
+            <BarChart3 size={20} />
+            <span className="text-xs">Analytics</span>
           </div>
-          <div className={`mobile-nav-item ${activeView === 'settings' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('settings'); }}>
-            <Settings size={20} />
-            <span className="text-xs">More</span>
+          <div className={`mobile-nav-item ${activeView === 'mobilemenu' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('mobilemenu'); }}>
+            <Menu size={20} />
+            <span className="text-xs">Menu</span>
           </div>
         </div>
       </nav>
@@ -572,6 +586,11 @@ function AppContent() {
             }}
             title="My CPN Stats"
           />
+          <UpgradeModal
+            isOpen={showUpgradeModal}
+            onClose={() => setShowUpgradeModal(false)}
+            featureName="all premium features"
+          />
         </>
       )}
     </div>
@@ -588,9 +607,10 @@ interface GirlsViewProps {
   onViewDetail: (girl: GirlWithMetrics) => void;
   canAddGirl: boolean;
   subscriptionTier: string;
+  onActivatePlayerMode: () => void;
 }
 
-function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail, canAddGirl, subscriptionTier }: GirlsViewProps) {
+function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail, canAddGirl, subscriptionTier, onActivatePlayerMode }: GirlsViewProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -605,9 +625,14 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
 
       {!canAddGirl && subscriptionTier === 'boyfriend' && (
         <div className="card-cpn bg-cpn-yellow/10 border-cpn-yellow/50">
-          <p className="text-cpn-yellow text-sm">
-            Boyfriend Mode is limited to 1 active profile. Activate Player Mode for unlimited profiles.
-          </p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+            <p className="text-cpn-yellow text-sm">
+              Boyfriend Mode is limited to 1 active profile. Activate Player Mode for unlimited profiles.
+            </p>
+            <button className="btn-cpn whitespace-nowrap w-full md:w-auto" onClick={onActivatePlayerMode}>
+              Activate Player Mode
+            </button>
+          </div>
         </div>
       )}
 
@@ -697,8 +722,7 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
   );
 }
 
-function SettingsView({ profile, girls, onSignOut }: { profile: any; girls: any[]; onSignOut: () => void }) {
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+function SettingsView({ profile, girls, onSignOut, onActivatePlayerMode }: { profile: any; girls: any[]; onSignOut: () => void; onActivatePlayerMode: () => void }) {
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
 
   const handleManageSubscription = async () => {
@@ -801,7 +825,7 @@ function SettingsView({ profile, girls, onSignOut }: { profile: any; girls: any[
               {subscription.isFree ? (
                 <button
                   className="btn-cpn"
-                  onClick={() => setShowUpgradeModal(true)}
+                  onClick={onActivatePlayerMode}
                 >
                   Activate Player Mode
                 </button>
@@ -866,12 +890,6 @@ function SettingsView({ profile, girls, onSignOut }: { profile: any; girls: any[
         </div>
       </div>
     </div>
-
-      <UpgradeModal
-        isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
-        featureName="all premium features"
-      />
     </>
   );
 }
