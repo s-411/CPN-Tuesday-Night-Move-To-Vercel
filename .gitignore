@@ -21,3 +21,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.env.local
+VERCEL_ENV_VARS.txt
+Variables.txt
+env.local.READY
+env.local.template

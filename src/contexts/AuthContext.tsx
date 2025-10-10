@@ -12,7 +12,7 @@ interface AuthContextType {
   loading: boolean;
   showPaywall: boolean;
   setShowPaywall: (show: boolean) => void;
-  signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, options?: { data?: { full_name?: string } }) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -41,13 +41,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(data);
 
       if (data) {
-        const tier = data.subscription_tier as string | null;
-        const isFreeTier = tier === 'boyfriend' || tier === 'free' || !tier;
-        if (!data.has_seen_paywall && isFreeTier) {
-          setShowPaywall(true);
-        } else {
-          setShowPaywall(false);
-        }
+        // Disabled automatic paywall display
+        // const tier = data.subscription_tier as string | null;
+        // const isFreeTier = tier === 'boyfriend' || tier === 'free' || !tier;
+        // if (!data.has_seen_paywall && isFreeTier) {
+        //   setShowPaywall(true);
+        // } else {
+        //   setShowPaywall(false);
+        // }
+        setShowPaywall(false);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -113,10 +115,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [user?.id]);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, options?: { data?: { full_name?: string } }) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: options,
     });
     return { error };
   };

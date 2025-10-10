@@ -40,10 +40,10 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl'
           <h2 className="text-2xl">{title}</h2>
           <button
             onClick={onClose}
-            className="text-cpn-gray hover:text-white transition-colors"
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors"
             aria-label="Close modal"
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
         <div className="p-6">{children}</div>

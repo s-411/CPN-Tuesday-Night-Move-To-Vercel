@@ -67,7 +67,7 @@
   }
 
   .input-cpn {
-    @apply bg-[var(--color-cpn-dark2)] text-[var(--color-cpn-white)] px-4 py-3;
+    @apply bg-[var(--color-cpn-dark)] text-[var(--color-cpn-white)] px-4 py-3;
     @apply focus:outline-none focus:ring-2 focus:ring-[var(--color-cpn-yellow)] focus:border-transparent;
     border: 1px solid rgba(171, 171, 171, 0.2);
     border-radius: 8px;
@@ -136,9 +136,11 @@
   }
 
   .modal-content {
-    @apply bg-[var(--color-cpn-dark2)] max-w-2xl w-full max-h-[90vh] overflow-y-auto;
+    @apply bg-[var(--color-cpn-dark2)] max-w-2xl w-full overflow-y-auto;
     border: 1px solid rgba(171, 171, 171, 0.2);
     border-radius: 8px;
+    max-height: 85vh;
+    -webkit-overflow-scrolling: touch;
   }
 
   .rating-tile {

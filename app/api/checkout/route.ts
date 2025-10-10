@@ -84,8 +84,8 @@ export async function POST(request: NextRequest) {
 
     // Determine success and cancel URLs
     const baseUrl = env.app.url;
-    const successUrl = `${baseUrl}?page=subscription-success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${baseUrl}`;
+    const successUrl = `${baseUrl}/welcome-premium`;
+    const cancelUrl = `${baseUrl}/step-4`;
 
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({

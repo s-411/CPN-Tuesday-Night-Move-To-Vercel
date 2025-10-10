@@ -1,9 +1,10 @@
 export const STRIPE_CONFIG = {
-  publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
+  // Support both Vite (VITE_*) and Next.js (NEXT_PUBLIC_*) environment variables
+  publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || import.meta.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
 
   prices: {
-    playerModeWeekly: import.meta.env.VITE_STRIPE_PRICE_PLAYER_MODE_WEEKLY || '',
-    playerModeAnnual: import.meta.env.VITE_STRIPE_PRICE_PLAYER_MODE_ANNUAL || '',
+    playerModeWeekly: import.meta.env.VITE_STRIPE_PRICE_PLAYER_MODE_WEEKLY || import.meta.env.NEXT_PUBLIC_STRIPE_PRICE_PLAYER_MODE_WEEKLY || '',
+    playerModeAnnual: import.meta.env.VITE_STRIPE_PRICE_PLAYER_MODE_ANNUAL || import.meta.env.NEXT_PUBLIC_STRIPE_PRICE_PLAYER_MODE_ANNUAL || '',
   },
 
   plans: {

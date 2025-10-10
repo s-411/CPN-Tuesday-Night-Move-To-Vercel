@@ -27,7 +27,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const stripeSecretKey = requireEnv('STRIPE_SECRET_KEY');
   const webhookSecret = requireEnv('STRIPE_WEBHOOK_SECRET');
-  const supabaseUrl = getEnv('NEXT_PUBLIC_SUPABASE_URL') || getEnv('VITE_SUPABASE_URL');
+  const supabaseUrl = requireEnv('VITE_SUPABASE_URL');
   const supabaseServiceRole = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
 
   if (!supabaseUrl) {

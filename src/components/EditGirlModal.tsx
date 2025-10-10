@@ -100,16 +100,16 @@ export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModa
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Edit Profile - ${girl.name}`}>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-3">
         {error && (
           <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
             <p className="text-red-400 text-sm">{error}</p>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="name" className="block text-sm text-cpn-gray mb-2">
+            <label htmlFor="name" className="block text-sm text-cpn-gray mb-1">
               Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -144,13 +144,13 @@ export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModa
         </div>
 
         <div>
-          <label className="block text-sm text-cpn-gray mb-2">
+          <label className="block text-sm text-cpn-gray mb-1">
             Hotness Rating <span className="text-red-500">*</span>
           </label>
           <RatingTileSelector value={rating} onChange={setRating} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label htmlFor="ethnicity" className="block text-sm text-cpn-gray mb-2">
               Ethnicity <span className="text-xs">(Optional)</span>
@@ -192,7 +192,7 @@ export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModa
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label htmlFor="locationCity" className="block text-sm text-cpn-gray mb-2">
               City <span className="text-xs">(Optional)</span>
@@ -237,12 +237,12 @@ export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModa
               />
               <div
                 className={`w-14 h-8 rounded-full transition-colors ${
-                  isActive ? 'bg-cpn-yellow' : 'bg-cpn-gray/20'
+                  isActive ? 'bg-cpn-yellow' : 'bg-white'
                 }`}
               >
                 <div
-                  className={`w-6 h-6 rounded-full bg-cpn-dark transition-transform mt-1 ${
-                    isActive ? 'translate-x-7 ml-1' : 'translate-x-1'
+                  className={`w-8 h-8 rounded-full bg-cpn-dark transition-transform ${
+                    isActive ? 'translate-x-6' : 'translate-x-0'
                   }`}
                 />
               </div>
@@ -254,7 +254,7 @@ export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModa
           </label>
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-3 pt-2">
           <button type="button" onClick={onClose} className="btn-secondary flex-1" disabled={loading}>
             Cancel
           </button>
