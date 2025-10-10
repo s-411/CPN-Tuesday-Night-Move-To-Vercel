@@ -32,10 +32,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const stripeSecretKey = requireEnv('STRIPE_SECRET_KEY');
-    const supabaseUrl = getEnv('NEXT_PUBLIC_SUPABASE_URL') || getEnv('VITE_SUPABASE_URL');
-    const supabaseAnonKey = getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY') || getEnv('VITE_SUPABASE_ANON_KEY');
+    const supabaseUrl = requireEnv('VITE_SUPABASE_URL');
+    const supabaseAnonKey = requireEnv('VITE_SUPABASE_ANON_KEY');
     const supabaseServiceRole = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
-    const appUrl = getEnv('VITE_APP_URL') || getEnv('NEXT_PUBLIC_APP_URL');
+    const appUrl = getEnv('VITE_APP_URL');
     
     console.log('[Checkout API] Environment check:', {
       hasStripeKey: !!stripeSecretKey,

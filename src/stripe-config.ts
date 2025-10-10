@@ -10,7 +10,7 @@ export interface StripeProduct {
 
 export const STRIPE_PRODUCTS: StripeProduct[] = [
   {
-    priceId: 'price_1SBdEy4N2PMxx1mWPFLurfxX',
+    priceId: 'price_1SGYnSEw2r0nngD8R1qYTiUj',
     name: 'Player Mode - Weekly',
     description: 'Weekly subscription to CPN Player Mode - Track up to 50 profiles, advanced analytics, and more',
     price: 1.99,
@@ -19,7 +19,7 @@ export const STRIPE_PRODUCTS: StripeProduct[] = [
     interval: 'week'
   },
   {
-    priceId: 'price_1SBdEz4N2PMxx1mWQLpPCYCr',
+    priceId: 'price_1SGYoDEw2r0nngD8CzxQXW4p',
     name: 'Player Mode - Annual',
     description: 'Yearly access to CPN - Everything in Player Mode plus API access and priority support',
     price: 27.00,
