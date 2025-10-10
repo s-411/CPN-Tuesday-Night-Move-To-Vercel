@@ -91,8 +91,8 @@ export function Step3() {
   return (
     <OnboardingLayout step={3}>
       <div className="max-w-md mx-auto">
-        <h1 className="text-3xl mb-2">Create Your Account</h1>
-        <p className="text-cpn-gray mb-6">Almost there! Create your account to see your CPN result</p>
+        <h1 className="text-3xl mb-2 text-center">Create Your Account</h1>
+        <p className="text-cpn-gray mb-6 text-center">Almost there! Create your account to see your CPN result</p>
 
         {success && (
           <div className="mb-4 p-4 bg-green-500/10 border border-green-500/50 rounded-lg">
@@ -112,12 +112,12 @@ export function Step3() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm text-cpn-gray mb-2">
-                Name <span className="text-red-500">*</span>
+                First Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 className="input-cpn w-full"
-                placeholder="Your name"
+                placeholder="Your first name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 disabled={loading || success}
@@ -153,20 +153,13 @@ export function Step3() {
             </div>
           </div>
 
-          <div className="flex gap-3 pt-6">
-            <button 
-              className="btn-secondary flex-1" 
-              onClick={() => goTo('/step-2')}
+          <div className="pt-6">
+            <button
+              className="btn-cpn w-full"
+              onClick={handleSubmit}
               disabled={loading || success}
             >
-              Back
-            </button>
-            <button 
-              className="btn-cpn flex-1" 
-              onClick={handleSubmit} 
-              disabled={loading || success}
-            >
-              {loading ? 'Creating Account...' : success ? 'Redirecting...' : 'Create Account'}
+              {loading ? 'Creating Account...' : success ? 'Redirecting...' : 'See Your CPN'}
             </button>
           </div>
         </div>

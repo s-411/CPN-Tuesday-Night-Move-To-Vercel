@@ -100,23 +100,22 @@ export function Step4() {
         {/* Results Card */}
         <div className="card-cpn mb-8">
           <div className="text-center mb-6">
-            <h1 className="text-4xl md:text-5xl font-bold mb-2">Your CPN Result</h1>
             {s1 && (
-              <p className="text-cpn-gray">For <span className="text-white font-semibold">{s1.name}</span></p>
+              <h1 className="text-4xl md:text-5xl font-bold mb-2">{s1.name}'s CPN</h1>
             )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="text-center p-6 bg-cpn-dark rounded-lg">
-              <p className="text-sm text-cpn-gray mb-2">Cost/Nut</p>
+              <p className="text-sm text-cpn-gray mb-2">Cost per Nut</p>
               <p className="text-4xl md:text-6xl font-extrabold text-cpn-yellow">{formatCurrency(costPerNut)}</p>
             </div>
             <div className="text-center p-6 bg-cpn-dark rounded-lg">
-              <p className="text-sm text-cpn-gray mb-2">Time/Nut</p>
+              <p className="text-sm text-cpn-gray mb-2">Time per Nut</p>
               <p className="text-3xl md:text-4xl font-bold">{timePerNut.toFixed(1)}m</p>
             </div>
             <div className="text-center p-6 bg-cpn-dark rounded-lg">
-              <p className="text-sm text-cpn-gray mb-2">Cost/Hour</p>
+              <p className="text-sm text-cpn-gray mb-2">Cost per Hour</p>
               <p className="text-3xl md:text-4xl font-bold">{formatCurrency(costPerHour)}</p>
             </div>
           </div>
@@ -151,26 +150,6 @@ export function Step4() {
           <p className="text-cpn-gray text-center mb-6">Unlock more features with Player Mode</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Boyfriend Mode - Free */}
-            <div className="card-cpn border-zinc-700">
-              <div className="mb-4">
-                <h3 className="text-xl font-bold mb-1">Boyfriend Mode</h3>
-                <p className="text-2xl font-bold text-cpn-yellow">Free</p>
-                <p className="text-sm text-cpn-gray">Forever</p>
-              </div>
-              <ul className="text-sm text-cpn-gray mb-6 space-y-2">
-                {STRIPE_CONFIG.plans.boyfriend.features.map((f, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="text-cpn-gray">•</span>
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <button className="btn-secondary w-full py-3" onClick={finish}>
-                Keep Free
-              </button>
-            </div>
-
             {/* Player Mode Weekly - Highlighted */}
             <div className="card-cpn border-[var(--color-cpn-yellow)] bg-[var(--color-cpn-yellow)]/5">
               <div className="mb-4">
@@ -190,7 +169,7 @@ export function Step4() {
                 ))}
               </ul>
               <button className="btn-cpn w-full py-3 text-lg" onClick={() => startCheckout('weekly')}>
-                Activate Weekly
+                Activate Player Mode
               </button>
             </div>
 
@@ -213,7 +192,27 @@ export function Step4() {
                 ))}
               </ul>
               <button className="btn-cpn w-full py-3" onClick={() => startCheckout('annual')}>
-                Activate Annual
+                Activate Player Mode
+              </button>
+            </div>
+
+            {/* Boyfriend Mode - Free */}
+            <div className="card-cpn border-zinc-700">
+              <div className="mb-4">
+                <h3 className="text-xl font-bold mb-1">Boyfriend Mode</h3>
+                <p className="text-2xl font-bold text-cpn-yellow">Free</p>
+                <p className="text-sm text-cpn-gray">Forever</p>
+              </div>
+              <ul className="text-sm text-cpn-gray mb-6 space-y-2">
+                {STRIPE_CONFIG.plans.boyfriend.features.map((f, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-cpn-gray">•</span>
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <button className="btn-secondary w-full py-3" onClick={finish}>
+                Keep Free
               </button>
             </div>
           </div>

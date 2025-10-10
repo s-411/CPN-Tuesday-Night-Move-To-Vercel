@@ -58,8 +58,8 @@ export function Step2() {
   return (
     <OnboardingLayout step={2}>
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl mb-2">Add Data</h1>
-        <p className="text-cpn-gray mb-6">Enter your first encounter data</p>
+        <h1 className="text-3xl mb-2 text-center">Add Data</h1>
+        <p className="text-cpn-gray mb-6 text-center">Enter your costs</p>
         
         {success && (
           <div className="mb-4 p-4 bg-green-500/10 border border-green-500/50 rounded-lg">
@@ -77,7 +77,7 @@ export function Step2() {
             loading={loading || success}
             error={error}
             submitLabel={success ? 'Redirecting...' : 'Continue'}
-            showPreview={true}
+            showPreview={false}
           />
         </div>
         <div className="flex justify-between mt-4">

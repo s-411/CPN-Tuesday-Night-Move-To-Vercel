@@ -40,8 +40,8 @@ export function Step1() {
   return (
     <OnboardingLayout step={1}>
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl mb-2">Add Girl</h1>
-        <p className="text-cpn-gray mb-6">Enter the girl's profile information</p>
+        <h1 className="text-3xl mb-2 text-center">Add Girl</h1>
+        <p className="text-cpn-gray mb-6 text-center">Enter the girl's profile information</p>
         
         {success && (
           <div className="mb-4 p-4 bg-green-500/10 border border-green-500/50 rounded-lg">

@@ -350,7 +350,7 @@ function AppContent() {
     <div className="min-h-screen flex flex-col md:flex-row">
       <aside className="hidden md:flex md:flex-col md:w-64 p-6" style={{ borderRight: '1px solid rgba(171, 171, 171, 0.2)' }}>
         <div className="mb-8">
-          <h1 className="text-2xl text-cpn-yellow">CPN</h1>
+          <img src="/CPN fav.png" alt="CPN" className="w-[60px] pb-2" />
           <p className="text-sm text-cpn-gray">Cost Per Nut Calculator</p>
           <div className="mt-2 text-xs text-cpn-gray">
             {profile?.email}
@@ -630,7 +630,7 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-xl font-bold">{girl.name}</h3>
+                    <h3 className="font-bold" style={{ fontSize: '2.25rem', lineHeight: '2.75rem' }}>{girl.name}</h3>
                     <p className="text-cpn-gray text-sm">{girl.age} years old</p>
                     <p className="text-cpn-yellow text-sm mt-1">{formatRating(girl.rating)}</p>
                   </div>
