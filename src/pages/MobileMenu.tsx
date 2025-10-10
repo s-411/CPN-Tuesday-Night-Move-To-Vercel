@@ -2,7 +2,7 @@ import { Users, TrendingUp, BarChart3, Plus, Table, Globe, Trophy, Share2, Setti
 
 interface MobileMenuProps {
   activeView: string;
-  onNavigate: (view: 'dashboard' | 'girls' | 'overview' | 'analytics' | 'dataentry' | 'datavault' | 'leaderboards' | 'share' | 'settings') => void;
+  onNavigate: (view: 'dashboard' | 'girls' | 'overview' | 'analytics' | 'dataentry' | 'datavault' | 'leaderboards' | 'sharecenter' | 'settings') => void;
   onSignOut: () => void;
 }
 
@@ -15,7 +15,7 @@ export function MobileMenu({ activeView, onNavigate, onSignOut }: MobileMenuProp
     { view: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
     { view: 'datavault' as const, label: 'Data Vault', icon: Globe },
     { view: 'leaderboards' as const, label: 'Leaderboards', icon: Trophy },
-    { view: 'share' as const, label: 'Share', icon: Share2 },
+    { view: 'sharecenter' as const, label: 'Share', icon: Share2 },
     { view: 'settings' as const, label: 'Settings', icon: Settings },
   ];
 

@@ -26,3 +26,4 @@ VERCEL_ENV_VARS.txt
 Variables.txt
 env.local.READY
 env.local.template
+.vercel

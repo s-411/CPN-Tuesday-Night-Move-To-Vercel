@@ -13,7 +13,6 @@ import { GirlDetail } from './pages/GirlDetail';
 import { Analytics } from './pages/Analytics';
 import { DataEntry } from './pages/DataEntry';
 import { AddDataPage } from './pages/AddDataPage';
-import { Share } from './pages/Share';
 import { ShareCenter } from './pages/ShareCenter';
 import { DataVault } from './pages/DataVault';
 import { Leaderboards } from './pages/Leaderboards';
@@ -393,7 +392,7 @@ function AppContent() {
             <Trophy size={20} />
             <span>Leaderboards</span>
           </div>
-          <div className={`sidebar-item ${activeView === 'share' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('share'); }}>
+          <div className={`sidebar-item ${activeView === 'sharecenter' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('sharecenter'); }}>
             <Share2 size={20} />
             <span>Share</span>
           </div>
@@ -481,15 +480,14 @@ function AppContent() {
                 <Leaderboards />
               </SubscriptionGate>
             )}
-            {activeView === 'share' && (
+            {activeView === 'sharecenter' && (
               <SubscriptionGate
                 isLocked={profile?.subscription_tier === 'boyfriend'}
                 featureName="Share"
               >
-                <Share />
+                <ShareCenter />
               </SubscriptionGate>
             )}
-            {activeView === 'sharecenter' && <ShareCenter />}
             {activeView === 'settings' && <SettingsView profile={profile} girls={girls} onSignOut={signOut} onActivatePlayerMode={() => setShowUpgradeModal(true)} />}
             {activeView === 'mobilemenu' && (
               <MobileMenu
