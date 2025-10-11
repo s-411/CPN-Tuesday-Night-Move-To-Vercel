@@ -404,7 +404,7 @@ export function LeaderboardDetail({ groupId, onBack }: LeaderboardDetailProps) {
 
           {/* Leave Group Section - Only show for real groups */}
           {groupId !== 'example' && (
-            <div className="mt-6 lg:w-1/3">
+            <div className="mt-6 lg:w-1/3 lg:ml-auto">
               <div className="card-cpn bg-gradient-to-br from-cpn-dark2 to-cpn-dark border-red-500/30">
                 <h3 className="text-lg font-heading text-cpn-white mb-3">Leave Group</h3>
                 <p className="text-cpn-gray text-sm mb-4">

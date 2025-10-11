@@ -109,35 +109,7 @@ export function Leaderboards({ onNavigateToGroup, refreshTrigger }: Leaderboards
         <>
           {/* Groups Grid - Always show, includes Example Group */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 animate-fade-in">
-            {/* Example Group Card - Always First */}
-            <div className="card-cpn bg-gradient-to-br from-cpn-dark2 to-cpn-dark border-cpn-yellow/50 relative">
-              <div className="absolute top-4 right-4">
-                <span className="text-xs bg-cpn-yellow text-cpn-dark px-2 py-1 rounded-full font-bold">
-                  PREVIEW
-                </span>
-              </div>
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-heading text-cpn-white mb-1">Example Group</h3>
-                  <p className="text-cpn-gray text-sm">4 members</p>
-                </div>
-                <Trophy className="w-6 h-6 text-cpn-yellow" />
-              </div>
-
-              <div className="text-sm text-cpn-gray mb-4">
-                See what a leaderboard looks like
-              </div>
-
-              <button
-                onClick={() => onNavigateToGroup && onNavigateToGroup('example')}
-                className="w-full btn-secondary py-2 px-4 text-sm flex items-center justify-center gap-2"
-              >
-                <Eye className="w-4 h-4" />
-                View Example
-              </button>
-            </div>
-
-            {/* Real Groups */}
+            {/* Real Groups First */}
             {groups.map((group) => (
               <div
                 key={group.id}
@@ -178,6 +150,32 @@ export function Leaderboards({ onNavigateToGroup, refreshTrigger }: Leaderboards
                 </div>
               </div>
             ))}
+
+            {/* Example Group Card - Always Last */}
+            <div className="card-cpn bg-gradient-to-br from-cpn-dark2 to-cpn-dark border-cpn-yellow/50 relative">
+              <div className="absolute top-4 right-4">
+                <span className="text-xs bg-cpn-yellow text-cpn-dark px-2 py-1 rounded-full font-bold">
+                  PREVIEW
+                </span>
+              </div>
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-heading text-cpn-white mb-1">Example Group</h3>
+                  <p className="text-cpn-gray text-sm">4 members</p>
+                </div>
+              </div>
+
+              <div className="text-sm text-cpn-gray mb-4">
+                See how leaderboards work
+              </div>
+
+              <button
+                onClick={() => onNavigateToGroup && onNavigateToGroup('example')}
+                className="w-full btn-cpn py-2 px-4 text-sm"
+              >
+                View Example
+              </button>
+            </div>
           </div>
 
           {/* Hero Section - Moves down as groups are added */}
