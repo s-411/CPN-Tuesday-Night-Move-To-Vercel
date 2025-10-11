@@ -69,6 +69,7 @@ function AppContent() {
   const [pathname, setPathname] = useState<string>(typeof window !== 'undefined' ? window.location.pathname : '/');
   const [viewingLeaderboardGroup, setViewingLeaderboardGroup] = useState<string | null>(null);
   const [joiningLeaderboardToken, setJoiningLeaderboardToken] = useState<string | null>(null);
+  const [leaderboardsRefresh, setLeaderboardsRefresh] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -502,6 +503,8 @@ function AppContent() {
                     groupId={viewingLeaderboardGroup}
                     onBack={() => {
                       setViewingLeaderboardGroup(null);
+                      // Trigger refresh when going back to groups list
+                      setLeaderboardsRefresh(prev => prev + 1);
                     }}
                   />
                 ) : (
@@ -509,6 +512,7 @@ function AppContent() {
                     onNavigateToGroup={(groupId) => {
                       setViewingLeaderboardGroup(groupId);
                     }}
+                    refreshTrigger={leaderboardsRefresh}
                   />
                 )}
               </>

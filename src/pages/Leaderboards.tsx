@@ -5,9 +5,10 @@ import { createGroup, getUserGroups, LeaderboardGroup } from '../lib/leaderboard
 
 interface LeaderboardsProps {
   onNavigateToGroup?: (groupId: string) => void;
+  refreshTrigger?: number; // Add a prop to trigger refresh
 }
 
-export function Leaderboards({ onNavigateToGroup }: LeaderboardsProps) {
+export function Leaderboards({ onNavigateToGroup, refreshTrigger }: LeaderboardsProps) {
   const { user } = useAuth();
   const [groups, setGroups] = useState<LeaderboardGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +21,7 @@ export function Leaderboards({ onNavigateToGroup }: LeaderboardsProps) {
     if (user) {
       loadGroups();
     }
-  }, [user]);
+  }, [user, refreshTrigger]); // Reload when refreshTrigger changes
 
   const loadGroups = async () => {
     if (!user) return;
