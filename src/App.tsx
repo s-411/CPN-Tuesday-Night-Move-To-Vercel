@@ -16,6 +16,8 @@ import { AddDataPage } from './pages/AddDataPage';
 import { ShareCenter } from './pages/ShareCenter';
 import { DataVault } from './pages/DataVault';
 import { Leaderboards } from './pages/Leaderboards';
+import { LeaderboardDetail } from './pages/LeaderboardDetail';
+import { JoinLeaderboard } from './pages/JoinLeaderboard';
 import { AddGirlModal } from './components/AddGirlModal';
 import { AddDataModal } from './components/AddDataModal';
 import { EditGirlModal } from './components/EditGirlModal';
@@ -65,6 +67,8 @@ function AppContent() {
   const [girls, setGirls] = useState<GirlWithMetrics[]>([]);
   const [loading, setLoading] = useState(true);
   const [pathname, setPathname] = useState<string>(typeof window !== 'undefined' ? window.location.pathname : '/');
+  const [viewingLeaderboardGroup, setViewingLeaderboardGroup] = useState<string | null>(null);
+  const [joiningLeaderboardToken, setJoiningLeaderboardToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -103,6 +107,11 @@ function AppContent() {
       setAuthView('passwordupdate');
     } else if (path === '/reset-password') {
       setAuthView('resetpassword');
+    } else if (path.startsWith('/join/')) {
+      // Handle invite link: /join/:token
+      const token = path.substring(6); // Remove '/join/'
+      setJoiningLeaderboardToken(token);
+      setActiveView('leaderboards');
     }
   }, [pathname]);
 
@@ -473,12 +482,36 @@ function AppContent() {
               </SubscriptionGate>
             )}
             {activeView === 'leaderboards' && (
-              <SubscriptionGate
-                isLocked={profile?.subscription_tier === 'boyfriend'}
-                featureName="Leaderboards"
-              >
-                <Leaderboards />
-              </SubscriptionGate>
+              <>
+                {joiningLeaderboardToken ? (
+                  <JoinLeaderboard
+                    inviteToken={joiningLeaderboardToken}
+                    onJoinSuccess={(groupId) => {
+                      setJoiningLeaderboardToken(null);
+                      setViewingLeaderboardGroup(groupId);
+                      window.history.pushState({}, '', '/leaderboards');
+                    }}
+                    onCancel={() => {
+                      setJoiningLeaderboardToken(null);
+                      setActiveView('dashboard');
+                      window.history.pushState({}, '', '/');
+                    }}
+                  />
+                ) : viewingLeaderboardGroup ? (
+                  <LeaderboardDetail
+                    groupId={viewingLeaderboardGroup}
+                    onBack={() => {
+                      setViewingLeaderboardGroup(null);
+                    }}
+                  />
+                ) : (
+                  <Leaderboards
+                    onNavigateToGroup={(groupId) => {
+                      setViewingLeaderboardGroup(groupId);
+                    }}
+                  />
+                )}
+              </>
             )}
             {activeView === 'sharecenter' && (
               <SubscriptionGate
