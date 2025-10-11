@@ -5,11 +5,13 @@ import {
   ArrowLeft,
   Loader2,
   ClipboardCheck,
+  LogOut,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   getGroupById,
   getGroupRankings,
+  leaveGroup,
   LeaderboardGroup,
   Ranking,
 } from '../lib/leaderboards';
@@ -26,6 +28,8 @@ export function LeaderboardDetail({ groupId, onBack }: LeaderboardDetailProps) {
   const [rankings, setRankings] = useState<Ranking[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
     if (groupId === 'example') {
@@ -162,6 +166,29 @@ export function LeaderboardDetail({ groupId, onBack }: LeaderboardDetailProps) {
     await navigator.clipboard.writeText(inviteLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleLeaveGroup = async () => {
+    if (!user || !groupId || groupId === 'example') return;
+
+    setLeaving(true);
+    try {
+      const { error } = await leaveGroup(groupId, user.id);
+      if (error) {
+        console.error('Error leaving group:', error);
+        alert(`Failed to leave group: ${error}`);
+        return;
+      }
+
+      // Success! Go back to groups list
+      setShowLeaveModal(false);
+      onBack();
+    } catch (error: any) {
+      console.error('Error leaving group:', error);
+      alert('Failed to leave group. Please try again.');
+    } finally {
+      setLeaving(false);
+    }
   };
 
   if (loading) {
@@ -374,8 +401,68 @@ export function LeaderboardDetail({ groupId, onBack }: LeaderboardDetailProps) {
               </div>
             </div>
           </div>
+
+          {/* Leave Group Section - Only show for real groups */}
+          {groupId !== 'example' && (
+            <div className="mt-6 lg:w-1/3">
+              <div className="card-cpn bg-gradient-to-br from-cpn-dark2 to-cpn-dark border-red-500/30">
+                <h3 className="text-lg font-heading text-cpn-white mb-3">Leave Group</h3>
+                <p className="text-cpn-gray text-sm mb-4">
+                  Once you leave, you'll need a new invite link to rejoin this group.
+                </p>
+                <button
+                  onClick={() => setShowLeaveModal(true)}
+                  className="w-full btn-danger flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Leave Group
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Leave Group Confirmation Modal */}
+      {showLeaveModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-cpn-dark border border-cpn-gray/20 rounded-lg w-full max-w-md animate-slide-up">
+            <div className="p-6">
+              <h3 className="text-xl font-heading text-cpn-white mb-4">Leave Group?</h3>
+              <p className="text-cpn-gray mb-6">
+                Are you sure you want to leave <strong className="text-cpn-white">{group?.name}</strong>?
+                You'll need a new invite link to rejoin.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLeaveModal(false)}
+                  className="flex-1 py-3 px-4 text-cpn-gray border border-cpn-gray/30 rounded-lg hover:text-cpn-white hover:border-cpn-gray transition-all duration-200"
+                  disabled={leaving}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLeaveGroup}
+                  className="flex-1 btn-danger flex items-center justify-center gap-2"
+                  disabled={leaving}
+                >
+                  {leaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Leaving...
+                    </>
+                  ) : (
+                    <>
+                      <LogOut className="w-4 h-4" />
+                      Leave Group
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
