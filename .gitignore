@@ -22,8 +22,13 @@ dist-ssr
 *.sw?
 .env
 .env.local
+.env.production
 VERCEL_ENV_VARS.txt
 Variables.txt
 env.local.READY
 env.local.template
 .vercel
+
+# Supabase
+.branches
+.temp

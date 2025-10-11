@@ -1,0 +1,95 @@
+# Quick Start Guide - Local Development
+
+Get up and running with local development in under 5 minutes.
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18+)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) (running)
+- [Supabase CLI](https://supabase.com/docs/guides/cli) (`brew install supabase/tap/supabase`)
+
+## Setup (First Time)
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Run the setup script
+npm run setup
+
+# 3. Start the dev server (in a new terminal)
+npm run dev
+```
+
+That's it! Open http://localhost:5173
+
+## Daily Development
+
+```bash
+# Start the database
+npm run db:start
+
+# Start the dev server
+npm run dev
+```
+
+## Important URLs
+
+| What | URL |
+|------|-----|
+| Your App | http://localhost:5173 |
+| Database Admin | http://127.0.0.1:54323 |
+| Test Emails | http://127.0.0.1:54324 |
+
+## Useful Commands
+
+```bash
+# Database
+npm run db:start     # Start local database
+npm run db:stop      # Stop local database
+npm run db:reset     # Reset database (clean slate)
+npm run db:status    # Check database status
+npm run db:studio    # Open database admin UI
+
+# Development
+npm run dev          # Start dev server
+npm run build        # Build for production
+npm run typecheck    # Check TypeScript
+```
+
+## Testing Accounts
+
+Create test accounts directly in the app at http://localhost:5173
+
+- Use any email (e.g., `test@example.com`)
+- Confirmation emails appear at http://127.0.0.1:54324
+- All data is **local only** - no impact on production
+
+## Environment Variables
+
+Your `.env.local` is already configured for local development:
+- Points to local Supabase at `http://127.0.0.1:54321`
+- Uses safe development keys
+- **Never affects production**
+
+To switch between local and production, see [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md)
+
+## Need Help?
+
+See [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md) for detailed documentation.
+
+## Common Issues
+
+**Can't connect to database?**
+```bash
+npm run db:status    # Check if running
+npm run db:start     # Start it
+```
+
+**Port already in use?**
+- Stop the conflicting service
+- Or edit ports in `supabase/config.toml`
+
+**Changes not showing?**
+- Restart dev server: `Ctrl+C` then `npm run dev`
+- Clear browser cache/localStorage
