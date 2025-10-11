@@ -17,7 +17,10 @@
     "db:status": "supabase status",
     "db:studio": "open http://127.0.0.1:54323",
     "upgrade": "./scripts/upgrade-to-premium.sh",
-    "setup": "./scripts/dev-setup.sh"
+    "setup": "./scripts/dev-setup.sh",
+    "bmad:refresh": "bmad-method install -f -i codex",
+    "bmad:list": "bmad-method list:agents",
+    "bmad:validate": "bmad-method validate"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",

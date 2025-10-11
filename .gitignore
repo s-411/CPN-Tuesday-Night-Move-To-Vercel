@@ -32,3 +32,6 @@ env.local.template
 # Supabase
 .branches
 .temp
+# BMAD (local only)
+.bmad-core/
+.bmad-*/
