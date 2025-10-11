@@ -148,26 +148,36 @@ export const generateShareImage = async (data: ShareData): Promise<Blob> => {
       { label: 'Avg Cost per Nut', value: formatCurrency(data.overviewStats.avgCostPerNut) },
     ];
 
-    stats.forEach((stat) => {
+    // Use 2-column layout for better space utilization
+    const col1X = 60;
+    const col2X = 620;
+    const rowHeight = 90;
+
+    stats.forEach((stat, index) => {
+      const xPos = index % 2 === 0 ? col1X : col2X;
+      const row = Math.floor(index / 2);
+      const y = yPos + row * rowHeight;
+
       ctx.fillStyle = '#ababab';
       ctx.font = '24px sans-serif';
-      ctx.fillText(stat.label, 60, yPos);
+      ctx.fillText(stat.label, xPos, y);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 42px sans-serif';
-      ctx.fillText(stat.value, 60, yPos + 45);
-
-      yPos += 95;
+      ctx.fillText(stat.value, xPos, y + 45);
     });
 
+    // Position "Best Value" below the stats grid
     if (data.overviewStats.bestValueGirl) {
+      const bestValueY = yPos + Math.ceil(stats.length / 2) * rowHeight + 20;
+
       ctx.fillStyle = '#f2f661';
       ctx.font = '24px sans-serif';
-      ctx.fillText('Best Value:', 60, yPos);
+      ctx.fillText('Best Value:', col1X, bestValueY);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 32px sans-serif';
-      ctx.fillText(data.overviewStats.bestValueGirl, 60, yPos + 40);
+      ctx.fillText(data.overviewStats.bestValueGirl, col1X, bestValueY + 40);
     }
   } else if (data.type === 'achievement') {
     ctx.fillStyle = '#f2f661';

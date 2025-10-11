@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:api": "vercel dev --listen 3000",
+    "dev:full": "vercel dev --listen 3000",
+    "dev:vercel": "vercel dev --listen 3000",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -15,6 +16,7 @@
     "db:reset": "supabase db reset",
     "db:status": "supabase status",
     "db:studio": "open http://127.0.0.1:54323",
+    "upgrade": "./scripts/upgrade-to-premium.sh",
     "setup": "./scripts/dev-setup.sh"
   },
   "dependencies": {

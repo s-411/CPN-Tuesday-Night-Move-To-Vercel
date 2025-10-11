@@ -33,6 +33,20 @@ npm run db:start
 npm run dev
 ```
 
+## Get Premium Access (Important!)
+
+To test premium features locally, you need to manually upgrade your account:
+
+```bash
+# 1. Create an account in the app first
+# 2. Then run this command:
+npm run upgrade your-email@example.com
+```
+
+That's it! Refresh your browser and you'll have full premium access.
+
+See [LOCAL_PREMIUM_ACCESS.md](./LOCAL_PREMIUM_ACCESS.md) for details.
+
 ## Important URLs
 
 | What | URL |
@@ -51,19 +65,28 @@ npm run db:reset     # Reset database (clean slate)
 npm run db:status    # Check database status
 npm run db:studio    # Open database admin UI
 
+# Premium Access
+npm run upgrade user@example.com  # Upgrade account to premium
+
 # Development
 npm run dev          # Start dev server
 npm run build        # Build for production
 npm run typecheck    # Check TypeScript
 ```
 
-## Testing Accounts
+## Testing Premium Features
 
-Create test accounts directly in the app at http://localhost:5173
+1. **Create account** at http://localhost:5173
+2. **Confirm email** at http://127.0.0.1:54324
+3. **Upgrade to premium:**
+   ```bash
+   npm run upgrade test@example.com
+   ```
+4. **Refresh browser** - you now have premium access!
 
-- Use any email (e.g., `test@example.com`)
-- Confirmation emails appear at http://127.0.0.1:54324
-- All data is **local only** - no impact on production
+All data is **local only** - no impact on production.
+
+See [LOCAL_PREMIUM_ACCESS.md](./LOCAL_PREMIUM_ACCESS.md) for more details.
 
 ## Environment Variables
 

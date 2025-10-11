@@ -245,9 +245,10 @@ export function ShareCenter() {
 
       // Add content
       template.innerHTML = `
-        <div style="text-align: center; margin-bottom: 80px;">
-          <h1 style="font-size: 72px; color: #f2f661; margin: 0 0 20px 0; font-weight: bold;">My CPN Stats</h1>
-          <p style="font-size: 32px; color: #999; margin: 0;">${selectedMetricData.length} Key Metric${selectedMetricData.length > 1 ? 's' : ''}</p>
+        <div style="text-align: center; margin-bottom: 60px;">
+          <img src="/CPN fav.png" alt="CPN Logo" style="max-width: 60px; height: auto; margin: 0 auto 30px auto; display: block;" />
+          <h1 style="font-size: 64px; color: #ffffff; margin: 0 0 20px 0; font-weight: bold; line-height: 1.2;">My Cost Per Nut<br/>Statistics</h1>
+          <p style="font-size: 28px; color: #999; margin: 0;">${selectedMetricData.length} Key Metric${selectedMetricData.length > 1 ? 's' : ''}</p>
         </div>
         ${selectedMetricData.map(metric => `
           <div style="background: #2a2a2a; border: 2px solid ${categoryColors[metric.category]}; border-radius: 20px; padding: 40px; margin-bottom: 40px;">
@@ -258,8 +259,11 @@ export function ShareCenter() {
             <div style="font-size: 64px; color: #f2f661; font-weight: bold;">${metric.value}</div>
           </div>
         `).join('')}
-        <div style="text-align: center; margin-top: 80px; font-size: 24px; color: #666;">
-          Generated with CPN • ${new Date().toLocaleDateString()}
+        <div style="margin-top: 80px; padding: 0 60px;">
+          <p style="font-size: 56px; color: #999; margin: 0 0 40px 0; text-align: center; line-height: 1;">Discover your CPN</p>
+          <div style="background: #f2f661; color: #1a1a1a; border-radius: 100px; width: 100%; font-size: 28px; font-weight: bold; text-align: center; display: flex; align-items: center; justify-content: center; height: 80px; box-sizing: border-box; line-height: 1;">
+            Try for free →
+          </div>
         </div>
       `;
 
