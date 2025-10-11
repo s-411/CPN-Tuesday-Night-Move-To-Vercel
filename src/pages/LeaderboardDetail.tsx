@@ -28,10 +28,108 @@ export function LeaderboardDetail({ groupId, onBack }: LeaderboardDetailProps) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (user && groupId) {
+    if (groupId === 'example') {
+      // Load example/mock data
+      loadExampleData();
+    } else if (user && groupId) {
       loadGroupData();
     }
   }, [user, groupId]);
+
+  const loadExampleData = () => {
+    setLoading(true);
+
+    // Mock group data
+    const exampleGroup: LeaderboardGroup = {
+      id: 'example',
+      name: 'Example Group',
+      created_by: 'example-user',
+      invite_token: 'example-token',
+      created_at: new Date('2025-09-30').toISOString(),
+      updated_at: new Date('2025-09-30').toISOString(),
+      member_count: 4,
+    };
+
+    // Mock rankings data
+    const exampleRankings: Ranking[] = [
+      {
+        rank: 1,
+        member: {
+          id: '1',
+          group_id: 'example',
+          user_id: user?.id || 'you',
+          display_username: 'You',
+          joined_at: new Date('2025-09-30').toISOString(),
+          stats: {
+            total_spent: 0,
+            total_nuts: 0,
+            cost_per_nut: 0,
+            total_time_minutes: 0,
+            total_girls: 0,
+            efficiency_score: 0,
+          },
+        },
+      },
+      {
+        rank: 2,
+        member: {
+          id: '2',
+          group_id: 'example',
+          user_id: 'user2',
+          display_username: 'OptimizedLover',
+          joined_at: new Date('2025-09-30').toISOString(),
+          stats: {
+            total_spent: 900,
+            total_nuts: 150,
+            cost_per_nut: 6.0,
+            total_time_minutes: 450,
+            total_girls: 3,
+            efficiency_score: 95,
+          },
+        },
+      },
+      {
+        rank: 3,
+        member: {
+          id: '3',
+          group_id: 'example',
+          user_id: 'user3',
+          display_username: 'EfficientKing',
+          joined_at: new Date('2025-09-30').toISOString(),
+          stats: {
+            total_spent: 1200,
+            total_nuts: 180,
+            cost_per_nut: 6.67,
+            total_time_minutes: 540,
+            total_girls: 4,
+            efficiency_score: 92,
+          },
+        },
+      },
+      {
+        rank: 4,
+        member: {
+          id: '4',
+          group_id: 'example',
+          user_id: 'user4',
+          display_username: 'BigSpender',
+          joined_at: new Date('2025-09-30').toISOString(),
+          stats: {
+            total_spent: 3500,
+            total_nuts: 200,
+            cost_per_nut: 17.5,
+            total_time_minutes: 800,
+            total_girls: 8,
+            efficiency_score: 65,
+          },
+        },
+      },
+    ];
+
+    setGroup(exampleGroup);
+    setRankings(exampleRankings);
+    setLoading(false);
+  };
 
   const loadGroupData = async () => {
     if (!user || !groupId) return;
@@ -131,28 +229,30 @@ export function LeaderboardDetail({ groupId, onBack }: LeaderboardDetailProps) {
                 </div>
               </div>
 
-              <div className="border-t border-cpn-gray/20 pt-4">
-                <p className="text-cpn-gray text-sm mb-3">Invite Friends</p>
-                <button
-                  onClick={copyInviteLink}
-                  className="w-full btn-cpn flex items-center justify-center gap-2"
-                >
-                  {copied ? (
-                    <>
-                      <ClipboardCheck className="w-4 h-4" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <LinkIcon className="w-4 h-4" />
-                      Copy Invite Link
-                    </>
-                  )}
-                </button>
-                <p className="text-xs text-cpn-gray mt-2">
-                  Share this link with friends to invite them to your group
-                </p>
-              </div>
+              {groupId !== 'example' && (
+                <div className="border-t border-cpn-gray/20 pt-4">
+                  <p className="text-cpn-gray text-sm mb-3">Invite Friends</p>
+                  <button
+                    onClick={copyInviteLink}
+                    className="w-full btn-cpn flex items-center justify-center gap-2"
+                  >
+                    {copied ? (
+                      <>
+                        <ClipboardCheck className="w-4 h-4" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <LinkIcon className="w-4 h-4" />
+                        Copy Invite Link
+                      </>
+                    )}
+                  </button>
+                  <p className="text-xs text-cpn-gray mt-2">
+                    Share this link with friends to invite them to your group
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -110,6 +110,74 @@ export function Leaderboards({ onNavigateToGroup, refreshTrigger }: Leaderboards
               Create private groups and see who's the most efficient dater.
             </p>
 
+            {/* Action Buttons */}
+            <div className="flex flex-col md:flex-row gap-4 justify-center mb-12 max-w-md mx-auto">
+              {!isCreating ? (
+                <>
+                  <button
+                    onClick={() => setIsCreating(true)}
+                    className="btn-cpn flex-1 inline-flex items-center justify-center gap-2 text-lg px-8 py-4"
+                  >
+                    <Plus className="w-6 h-6" />
+                    Create Your First Group
+                  </button>
+                  <button
+                    onClick={() => onNavigateToGroup && onNavigateToGroup('example')}
+                    className="btn-secondary flex-1 inline-flex items-center justify-center gap-2 text-lg px-8 py-4"
+                  >
+                    <Eye className="w-6 h-6" />
+                    See Example Group
+                  </button>
+                </>
+              ) : (
+                <div className="w-full">
+                  <div className="card-cpn text-left">
+                    <h3 className="text-lg font-heading text-cpn-white mb-4">Create Group</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Enter group name..."
+                          value={groupName}
+                          onChange={(e) => setGroupName(e.target.value)}
+                          className="input-cpn w-full"
+                          onKeyPress={(e) => e.key === 'Enter' && handleCreateGroup()}
+                          autoFocus
+                        />
+                        {error && (
+                          <p className="text-red-400 text-sm mt-1">{error}</p>
+                        )}
+                      </div>
+                      <div className="bg-cpn-dark2/50 rounded-lg p-3">
+                        <p className="text-sm text-cpn-gray">
+                          <strong>Privacy Notice:</strong> This leaderboard is completely private.
+                          Only people you invite can see it. All usernames are kept anonymous.
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => {
+                            setIsCreating(false);
+                            setGroupName('');
+                            setError('');
+                          }}
+                          className="flex-1 py-3 px-4 text-cpn-gray border border-cpn-gray/30 rounded-lg hover:text-cpn-white hover:border-cpn-gray transition-all duration-200"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleCreateGroup}
+                          className="flex-1 btn-cpn"
+                        >
+                          Create Group
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Benefits */}
             <div className="grid md:grid-cols-3 gap-6 mb-12">
               <div className="card-cpn bg-gradient-to-br from-cpn-dark2 to-cpn-dark text-center">
@@ -134,63 +202,6 @@ export function Leaderboards({ onNavigateToGroup, refreshTrigger }: Leaderboards
                 </p>
               </div>
             </div>
-
-            {/* Create Group Form */}
-            {!isCreating ? (
-              <button
-                onClick={() => setIsCreating(true)}
-                className="btn-cpn inline-flex items-center gap-2 text-lg px-8 py-4"
-              >
-                <Plus className="w-6 h-6" />
-                Create Your First Group
-              </button>
-            ) : (
-              <div className="max-w-md mx-auto">
-                <div className="card-cpn">
-                  <h3 className="text-lg font-heading text-cpn-white mb-4">Create Group</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <input
-                        type="text"
-                        placeholder="Enter group name..."
-                        value={groupName}
-                        onChange={(e) => setGroupName(e.target.value)}
-                        className="input-cpn w-full"
-                        onKeyPress={(e) => e.key === 'Enter' && handleCreateGroup()}
-                        autoFocus
-                      />
-                      {error && (
-                        <p className="text-red-400 text-sm mt-1">{error}</p>
-                      )}
-                    </div>
-                    <div className="bg-cpn-dark2/50 rounded-lg p-3">
-                      <p className="text-sm text-cpn-gray">
-                        <strong>Privacy Notice:</strong> This leaderboard is completely private.
-                        Only people you invite can see it. All usernames are kept anonymous.
-                      </p>
-                    </div>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => {
-                          setIsCreating(false);
-                          setGroupName('');
-                          setError('');
-                        }}
-                        className="flex-1 py-3 px-4 text-cpn-gray border border-cpn-gray/30 rounded-lg hover:text-cpn-white hover:border-cpn-gray transition-all duration-200"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleCreateGroup}
-                        className="flex-1 btn-cpn"
-                      >
-                        Create Group
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -104,29 +104,31 @@ export async function createGroup(name: string, userId: string) {
  */
 export async function getUserGroups(userId: string) {
   try {
-    const { data, error } = await supabase
+    // First, get the group IDs the user is a member of
+    const { data: memberData, error: memberError } = await supabase
       .from('leaderboard_members')
-      .select(`
-        group_id,
-        leaderboard_groups (
-          id,
-          name,
-          created_by,
-          invite_token,
-          created_at,
-          updated_at
-        )
-      `)
+      .select('group_id')
       .eq('user_id', userId);
 
-    if (error) throw error;
+    if (memberError) throw memberError;
 
-    // Transform the data and get member counts
+    if (!memberData || memberData.length === 0) {
+      return { data: [], error: null };
+    }
+
+    const groupIds = memberData.map((m) => m.group_id);
+
+    // Then, fetch the groups directly (avoiding nested query that causes recursion)
+    const { data: groupsData, error: groupsError } = await supabase
+      .from('leaderboard_groups')
+      .select('*')
+      .in('id', groupIds);
+
+    if (groupsError) throw groupsError;
+
+    // Get member counts for each group
     const groups: LeaderboardGroup[] = await Promise.all(
-      (data || []).map(async (item: any) => {
-        const group = item.leaderboard_groups;
-
-        // Get member count for this group
+      (groupsData || []).map(async (group) => {
         const { count } = await supabase
           .from('leaderboard_members')
           .select('*', { count: 'exact', head: true })
