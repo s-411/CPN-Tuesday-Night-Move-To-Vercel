@@ -6,7 +6,7 @@ import { commitOnboardingToSupabase } from '../../lib/onboarding/commit';
 import { OnboardingLayout } from '../../components/OnboardingLayout';
 
 export function Step3() {
-  const { signUp, signIn } = useAuth();
+  const { signUp } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,20 +47,16 @@ export function Step3() {
     try {
       // Save name to session storage
       setStep3({ name, v: 1 });
-      
+
       // Create account
       const { error: signUpError } = await signUp(email, password, {
         data: { full_name: name }
       });
-      
+
       if (signUpError) {
-        // Try sign-in fallback if user exists
-        const { error: signInError } = await signIn(email, password);
-        if (signInError) {
-          throw signInError;
-        }
+        throw signUpError;
       }
-      
+
       // Wait for auth to settle
       await new Promise(resolve => setTimeout(resolve, 500));
       
