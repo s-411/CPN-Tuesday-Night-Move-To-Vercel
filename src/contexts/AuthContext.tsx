@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -86,6 +86,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setShowPaywall(false);
       }
       setLoading(false);
+
+      // Handle email confirmation redirect
+      if (event === 'USER_UPDATED') {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const type = hashParams.get('type');
+        if (type === 'email_change' && window.location.pathname !== '/email-confirmed') {
+          window.history.pushState({}, '', '/email-confirmed' + window.location.hash);
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -154,9 +164,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateEmail = async (newEmail: string) => {
-    const { error } = await supabase.auth.updateUser({
-      email: newEmail,
-    });
+    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const { error } = await supabase.auth.updateUser(
+      { email: newEmail },
+      { emailRedirectTo: `${appUrl}/email-confirmed` }
+    );
     return { error };
   };
 

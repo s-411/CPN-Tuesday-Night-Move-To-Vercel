@@ -7,6 +7,7 @@ import { SignIn } from './pages/SignIn';
 import { SignUp } from './pages/SignUp';
 import { ResetPassword } from './pages/ResetPassword';
 import { PasswordUpdate } from './pages/PasswordUpdate';
+import { EmailConfirmed } from './pages/EmailConfirmed';
 import { Dashboard } from './pages/Dashboard';
 import { Overview } from './pages/Overview';
 import { GirlDetail } from './pages/GirlDetail';
@@ -108,6 +109,8 @@ function AppContent() {
       setAuthView('passwordupdate');
     } else if (path === '/reset-password') {
       setAuthView('resetpassword');
+    } else if (path === '/email-confirmed') {
+      // Email confirmation handled by dedicated component
     } else if (path.startsWith('/join/')) {
       // Handle invite link: /join/:token
       const token = path.substring(6); // Remove '/join/'
@@ -328,6 +331,10 @@ function AppContent() {
       );
     }
 
+    if (pathname === '/email-confirmed') {
+      return <EmailConfirmed />;
+    }
+
     return (
       <SignIn
         onSwitchToSignUp={() => {
@@ -358,6 +365,11 @@ function AppContent() {
   // When signed-in, render Step 4 if the URL requests it (onboarding result)
   if (pathname === '/step-4') {
     return <Step4 />;
+  }
+
+  // Email confirmation page (authenticated users)
+  if (pathname === '/email-confirmed') {
+    return <EmailConfirmed />;
   }
 
   const canAddGirl = profile?.subscription_tier === 'boyfriend' ? activeGirls.length < 1 : activeGirls.length < 50;
