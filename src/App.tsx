@@ -53,7 +53,7 @@ interface GirlWithMetrics extends Girl {
 }
 
 function AppContent() {
-  const { user, profile, loading: authLoading, signOut, showPaywall, setShowPaywall } = useAuth();
+  const { user, profile, loading: authLoading, signOut, showPaywall, setShowPaywall, updateEmail } = useAuth();
   const [authView, setAuthView] = useState<'signin' | 'signup' | 'resetpassword' | 'passwordupdate'>('signin');
   const [activeView, setActiveView] = useState<'dashboard' | 'girls' | 'overview' | 'analytics' | 'dataentry' | 'datavault' | 'leaderboards' | 'share' | 'sharecenter' | 'settings' | 'mobilemenu'>('dashboard');
   const [showAddGirlModal, setShowAddGirlModal] = useState(false);
@@ -461,6 +461,7 @@ function AppContent() {
                 onAddData={handleAddData}
                 onEdit={handleEditGirl}
                 onDelete={handleDeleteGirl}
+                onAddGirl={() => setShowAddGirlModal(true)}
               />
             )}
             {activeView === 'analytics' && (
@@ -525,7 +526,7 @@ function AppContent() {
                 <ShareCenter />
               </SubscriptionGate>
             )}
-            {activeView === 'settings' && <SettingsView profile={profile} girls={girls} onSignOut={signOut} onActivatePlayerMode={() => setShowUpgradeModal(true)} />}
+            {activeView === 'settings' && <SettingsView profile={profile} girls={girls} onSignOut={signOut} onActivatePlayerMode={() => setShowUpgradeModal(true)} updateEmail={updateEmail} />}
             {activeView === 'mobilemenu' && (
               <MobileMenu
                 activeView={activeView}
@@ -757,8 +758,11 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
   );
 }
 
-function SettingsView({ profile, girls, onSignOut, onActivatePlayerMode }: { profile: any; girls: any[]; onSignOut: () => void; onActivatePlayerMode: () => void }) {
+function SettingsView({ profile, girls, onSignOut, onActivatePlayerMode, updateEmail }: { profile: any; girls: any[]; onSignOut: () => void; onActivatePlayerMode: () => void; updateEmail: (newEmail: string) => Promise<{ error: any | null }> }) {
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+  const [emailUpdateMessage, setEmailUpdateMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const handleManageSubscription = async () => {
     try {
@@ -790,6 +794,49 @@ function SettingsView({ profile, girls, onSignOut, onActivatePlayerMode }: { pro
       alert(error instanceof Error ? error.message : 'Failed to open billing portal');
     } finally {
       setIsLoadingPortal(false);
+    }
+  };
+
+  const handleUpdateEmail = async () => {
+    if (!newEmail || newEmail.trim() === '') {
+      setEmailUpdateMessage({ type: 'error', text: 'Please enter a valid email address' });
+      return;
+    }
+
+    if (newEmail === profile?.email) {
+      setEmailUpdateMessage({ type: 'error', text: 'This is already your current email address' });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      setEmailUpdateMessage({ type: 'error', text: 'Please enter a valid email address' });
+      return;
+    }
+
+    try {
+      setIsUpdatingEmail(true);
+      setEmailUpdateMessage(null);
+
+      const { error } = await updateEmail(newEmail);
+
+      if (error) {
+        throw error;
+      }
+
+      setEmailUpdateMessage({
+        type: 'success',
+        text: 'Confirmation email sent! Check your new email address to confirm the change.'
+      });
+      setNewEmail('');
+    } catch (error) {
+      console.error('Error updating email:', error);
+      setEmailUpdateMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to update email address'
+      });
+    } finally {
+      setIsUpdatingEmail(false);
     }
   };
 
@@ -830,8 +877,35 @@ function SettingsView({ profile, girls, onSignOut, onActivatePlayerMode }: { pro
             <h3 className="text-xl mb-4">Profile</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-cpn-gray mb-2">Email</label>
+                <label className="block text-sm text-cpn-gray mb-2">Current Email</label>
                 <input type="email" className="input-cpn w-full" value={profile?.email || ''} disabled />
+              </div>
+              <div>
+                <label className="block text-sm text-cpn-gray mb-2">New Email</label>
+                <input
+                  type="email"
+                  className="input-cpn w-full"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="Enter new email address"
+                  disabled={isUpdatingEmail}
+                />
+                <button
+                  className="btn-cpn mt-2"
+                  onClick={handleUpdateEmail}
+                  disabled={isUpdatingEmail || !newEmail}
+                >
+                  {isUpdatingEmail ? 'Updating...' : 'Update Email'}
+                </button>
+                {emailUpdateMessage && (
+                  <div className={`mt-2 p-2 rounded text-sm ${
+                    emailUpdateMessage.type === 'success'
+                      ? 'bg-green-500/10 text-green-400'
+                      : 'bg-red-500/10 text-red-400'
+                  }`}>
+                    {emailUpdateMessage.text}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm text-cpn-gray mb-2">Account Created</label>
