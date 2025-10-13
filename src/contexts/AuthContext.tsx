@@ -65,7 +65,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Log initial URL on mount to see what params Supabase sends
+    console.log('[AuthContext] Initial mount - Full URL:', window.location.href);
+    console.log('[AuthContext] Query params:', window.location.search);
+    console.log('[AuthContext] Hash params:', window.location.hash);
+
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('[AuthContext] Session retrieved:', session ? 'exists' : 'null');
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -77,6 +83,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[AuthContext] onAuthStateChange event:', event, 'pathname:', window.location.pathname);
+      console.log('[AuthContext] Session user email:', session?.user?.email);
+      console.log('[AuthContext] Session user email_confirmed_at:', session?.user?.email_confirmed_at);
+      console.log('[AuthContext] Session user new_email:', (session?.user as any)?.new_email);
+
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -87,9 +98,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setLoading(false);
 
-      // Handle email confirmation redirect
-      console.log('[AuthContext] onAuthStateChange event:', event, 'pathname:', window.location.pathname);
-
       // Check both query params and hash params for email_change type
       const queryParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -98,11 +106,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log('[AuthContext] type from query:', typeFromQuery, 'type from hash:', typeFromHash);
 
+      // Detect email change confirmation - check if event is SIGNED_IN and we have type=email_change in URL
+      // OR if the session email changed from what we had before
       if ((typeFromQuery === 'email_change' || typeFromHash === 'email_change') && window.location.pathname !== '/email-confirmed') {
-        console.log('[AuthContext] Email change detected, redirecting to /email-confirmed');
-        // Preserve both query and hash params in the redirect
+        console.log('[AuthContext] Email change detected via URL params, redirecting to /email-confirmed');
         const fullParams = window.location.search + window.location.hash;
         window.history.pushState({}, '', '/email-confirmed' + fullParams);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      } else if (event === 'SIGNED_IN' && user && session?.user && user.email !== session.user.email) {
+        console.log('[AuthContext] Email change detected via session email mismatch, redirecting to /email-confirmed');
+        window.history.pushState({}, '', '/email-confirmed');
         window.dispatchEvent(new PopStateEvent('popstate'));
       }
     });
