@@ -15,21 +15,28 @@ export function EmailConfirmed() {
     const typeFromQuery = queryParams.get('type');
     const typeFromHash = hashParams.get('type');
 
+    // Check sessionStorage flag set by AuthContext BEFORE hash was cleared
+    const emailChangeFlag = sessionStorage.getItem('email_change_confirmed');
+
     console.log('[EmailConfirmed] Checking token - accessToken:', !!accessToken, 'typeFromQuery:', typeFromQuery, 'typeFromHash:', typeFromHash);
     console.log('[EmailConfirmed] Full hash string:', fullHash);
+    console.log('[EmailConfirmed] SessionStorage flag:', emailChangeFlag);
 
     // If we're on this page and there's ANYTHING in the hash (especially type=email_change),
-    // or if there's an access_token, assume it's valid.
-    // The fact that we got redirected here by AuthContext means it's legitimate.
+    // or if there's an access_token, or if the sessionStorage flag is set, assume it's valid.
     const hasTypeInHash = fullHash.includes('type=email_change');
     const hasAccessToken = !!accessToken || fullHash.includes('access_token=');
 
-    if (!hasAccessToken && !hasTypeInHash && !typeFromQuery && !typeFromHash) {
+    if (!hasAccessToken && !hasTypeInHash && !typeFromQuery && !typeFromHash && !emailChangeFlag) {
       console.log('[EmailConfirmed] No valid token or type found anywhere');
       setHasValidToken(false);
     } else {
       console.log('[EmailConfirmed] Valid email change confirmation detected');
       setHasValidToken(true);
+      // Clear the flag after using it
+      if (emailChangeFlag) {
+        sessionStorage.removeItem('email_change_confirmed');
+      }
     }
   }, []);
 

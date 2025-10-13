@@ -70,6 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('[AuthContext] Query params:', window.location.search);
     console.log('[AuthContext] Hash params:', window.location.hash);
 
+    // CRITICAL: Check for email_change BEFORE Supabase processes and clears the hash
+    const initialHash = window.location.hash;
+    if (initialHash.includes('type=email_change')) {
+      console.log('[AuthContext] Email change detected in initial hash, setting flag in sessionStorage');
+      sessionStorage.setItem('email_change_confirmed', 'true');
+    }
+
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log('[AuthContext] Session retrieved:', session ? 'exists' : 'null');
       setSession(session);
