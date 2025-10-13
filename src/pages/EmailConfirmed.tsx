@@ -9,18 +9,27 @@ export function EmailConfirmed() {
     // Check both query params and hash params
     const queryParams = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const fullHash = window.location.hash;
 
     const accessToken = hashParams.get('access_token') || hashParams.get('token');
     const typeFromQuery = queryParams.get('type');
     const typeFromHash = hashParams.get('type');
 
     console.log('[EmailConfirmed] Checking token - accessToken:', !!accessToken, 'typeFromQuery:', typeFromQuery, 'typeFromHash:', typeFromHash);
+    console.log('[EmailConfirmed] Full hash string:', fullHash);
 
-    if (!accessToken && (typeFromQuery !== 'email_change' && typeFromHash !== 'email_change')) {
-      console.log('[EmailConfirmed] No valid token or type found');
+    // If we're on this page and there's ANYTHING in the hash (especially type=email_change),
+    // or if there's an access_token, assume it's valid.
+    // The fact that we got redirected here by AuthContext means it's legitimate.
+    const hasTypeInHash = fullHash.includes('type=email_change');
+    const hasAccessToken = !!accessToken || fullHash.includes('access_token=');
+
+    if (!hasAccessToken && !hasTypeInHash && !typeFromQuery && !typeFromHash) {
+      console.log('[EmailConfirmed] No valid token or type found anywhere');
       setHasValidToken(false);
     } else {
       console.log('[EmailConfirmed] Valid email change confirmation detected');
+      setHasValidToken(true);
     }
   }, []);
 

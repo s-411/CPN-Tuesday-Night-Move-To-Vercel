@@ -538,7 +538,7 @@ function AppContent() {
                 <ShareCenter />
               </SubscriptionGate>
             )}
-            {activeView === 'settings' && <SettingsView profile={profile} girls={girls} onSignOut={signOut} onActivatePlayerMode={() => setShowUpgradeModal(true)} updateEmail={updateEmail} />}
+            {activeView === 'settings' && <SettingsView user={user} profile={profile} girls={girls} onSignOut={signOut} onActivatePlayerMode={() => setShowUpgradeModal(true)} updateEmail={updateEmail} />}
             {activeView === 'mobilemenu' && (
               <MobileMenu
                 activeView={activeView}
@@ -770,7 +770,7 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
   );
 }
 
-function SettingsView({ profile, girls, onSignOut, onActivatePlayerMode, updateEmail }: { profile: any; girls: any[]; onSignOut: () => void; onActivatePlayerMode: () => void; updateEmail: (newEmail: string) => Promise<{ error: any | null }> }) {
+function SettingsView({ user, profile, girls, onSignOut, onActivatePlayerMode, updateEmail }: { user: any; profile: any; girls: any[]; onSignOut: () => void; onActivatePlayerMode: () => void; updateEmail: (newEmail: string) => Promise<{ error: any | null }> }) {
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
@@ -815,7 +815,8 @@ function SettingsView({ profile, girls, onSignOut, onActivatePlayerMode, updateE
       return;
     }
 
-    if (newEmail === profile?.email) {
+    const currentEmail = user?.email || profile?.email;
+    if (newEmail === currentEmail) {
       setEmailUpdateMessage({ type: 'error', text: 'This is already your current email address' });
       return;
     }
@@ -890,7 +891,7 @@ function SettingsView({ profile, girls, onSignOut, onActivatePlayerMode, updateE
             <div className="space-y-4">
               <div>
                 <label className="block text-sm text-cpn-gray mb-2">Current Email</label>
-                <input type="email" className="input-cpn w-full" value={profile?.email || ''} disabled />
+                <input type="email" className="input-cpn w-full" value={user?.email || profile?.email || ''} disabled />
               </div>
               <div>
                 <label className="block text-sm text-cpn-gray mb-2">New Email</label>
