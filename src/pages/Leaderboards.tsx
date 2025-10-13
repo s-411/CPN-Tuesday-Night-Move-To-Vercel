@@ -161,7 +161,7 @@ export function Leaderboards({ onNavigateToGroup, refreshTrigger }: Leaderboards
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-xl font-heading text-cpn-white mb-1">Example Group</h3>
-                  <p className="text-cpn-gray text-sm">4 members</p>
+                  <p className="text-cpn-gray text-sm">5 members</p>
                 </div>
               </div>
 
@@ -171,7 +171,7 @@ export function Leaderboards({ onNavigateToGroup, refreshTrigger }: Leaderboards
 
               <button
                 onClick={() => onNavigateToGroup && onNavigateToGroup('example')}
-                className="w-full btn-cpn py-2 px-4 text-sm"
+                className="w-full py-2 px-4 text-sm text-cpn-yellow border-2 border-cpn-yellow rounded-lg hover:bg-cpn-yellow hover:text-cpn-dark transition-all duration-200 font-bold"
               >
                 View Example
               </button>
