@@ -88,13 +88,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
 
       // Handle email confirmation redirect
-      if (event === 'USER_UPDATED') {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const type = hashParams.get('type');
-        if (type === 'email_change' && window.location.pathname !== '/email-confirmed') {
-          window.history.pushState({}, '', '/email-confirmed' + window.location.hash);
-          window.dispatchEvent(new PopStateEvent('popstate'));
-        }
+      console.log('[AuthContext] onAuthStateChange event:', event, 'pathname:', window.location.pathname);
+
+      // Check both query params and hash params for email_change type
+      const queryParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const typeFromQuery = queryParams.get('type');
+      const typeFromHash = hashParams.get('type');
+
+      console.log('[AuthContext] type from query:', typeFromQuery, 'type from hash:', typeFromHash);
+
+      if ((typeFromQuery === 'email_change' || typeFromHash === 'email_change') && window.location.pathname !== '/email-confirmed') {
+        console.log('[AuthContext] Email change detected, redirecting to /email-confirmed');
+        // Preserve both query and hash params in the redirect
+        const fullParams = window.location.search + window.location.hash;
+        window.history.pushState({}, '', '/email-confirmed' + fullParams);
+        window.dispatchEvent(new PopStateEvent('popstate'));
       }
     });
 

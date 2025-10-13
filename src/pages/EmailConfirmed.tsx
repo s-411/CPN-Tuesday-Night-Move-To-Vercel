@@ -6,12 +6,21 @@ export function EmailConfirmed() {
   const [hasValidToken, setHasValidToken] = useState(true);
 
   useEffect(() => {
+    // Check both query params and hash params
+    const queryParams = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get('access_token');
-    const type = hashParams.get('type');
 
-    if (!accessToken || type !== 'email_change') {
+    const accessToken = hashParams.get('access_token') || hashParams.get('token');
+    const typeFromQuery = queryParams.get('type');
+    const typeFromHash = hashParams.get('type');
+
+    console.log('[EmailConfirmed] Checking token - accessToken:', !!accessToken, 'typeFromQuery:', typeFromQuery, 'typeFromHash:', typeFromHash);
+
+    if (!accessToken && (typeFromQuery !== 'email_change' && typeFromHash !== 'email_change')) {
+      console.log('[EmailConfirmed] No valid token or type found');
       setHasValidToken(false);
+    } else {
+      console.log('[EmailConfirmed] Valid email change confirmation detected');
     }
   }, []);
 
