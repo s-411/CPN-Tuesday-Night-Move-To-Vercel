@@ -380,9 +380,6 @@ function AppContent() {
         <div className="mb-8">
           <img src="/CPN fav.png" alt="CPN" className="w-[60px] pb-2" />
           <p className="text-sm text-cpn-gray">Cost Per Nut Calculator</p>
-          <div className="mt-2 text-xs text-cpn-gray">
-            {profile?.email}
-          </div>
         </div>
 
         <nav className="flex-1 space-y-2">
@@ -394,19 +391,19 @@ function AppContent() {
             <Users size={20} />
             <span>Girls</span>
           </div>
-          <div className={`sidebar-item ${activeView === 'dataentry' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('dataentry'); }}>
+          <div className={`sidebar-item ${activeView === 'dataentry' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('dataentry'); }} data-locked={profile?.subscription_tier === 'boyfriend' ? 'true' : undefined}>
             <Plus size={20} />
             <span>Quick Data Entry</span>
           </div>
-          <div className={`sidebar-item ${activeView === 'overview' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('overview'); }}>
+          <div className={`sidebar-item ${activeView === 'overview' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('overview'); }} data-locked={profile?.subscription_tier === 'boyfriend' ? 'true' : undefined}>
             <Table size={20} />
             <span>Overview</span>
           </div>
-          <div className={`sidebar-item ${activeView === 'analytics' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('analytics'); }}>
+          <div className={`sidebar-item ${activeView === 'analytics' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('analytics'); }} data-locked={profile?.subscription_tier === 'boyfriend' ? 'true' : undefined}>
             <BarChart3 size={20} />
             <span>Analytics</span>
           </div>
-          <div className={`sidebar-item ${activeView === 'datavault' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('datavault'); }}>
+          <div className={`sidebar-item ${activeView === 'datavault' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('datavault'); }} data-locked={profile?.subscription_tier === 'boyfriend' ? 'true' : undefined}>
             <Globe size={20} />
             <span>Data Vault</span>
           </div>
@@ -550,6 +547,7 @@ function AppContent() {
                   setActiveView(view);
                 }}
                 onSignOut={signOut}
+                subscriptionTier={profile?.subscription_tier}
               />
             )}
           </>
@@ -575,7 +573,7 @@ function AppContent() {
           >
             <Plus size={28} className="text-cpn-dark" />
           </div>
-          <div className={`mobile-nav-item ${activeView === 'analytics' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('analytics'); }}>
+          <div className={`mobile-nav-item ${activeView === 'analytics' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('analytics'); }} data-locked={profile?.subscription_tier === 'boyfriend' ? 'true' : undefined}>
             <BarChart3 size={20} />
             <span className="text-xs">Analytics</span>
           </div>
