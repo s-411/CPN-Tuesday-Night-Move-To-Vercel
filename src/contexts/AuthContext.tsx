@@ -156,11 +156,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user?.id]);
 
   const signUp = async (email: string, password: string, options?: { data?: { full_name?: string } }) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: options,
     });
+
+    // If signup successful, add user to Kit
+    if (!error && data.user) {
+      try {
+        console.log('[Auth] Syncing new user to Kit:', data.user.email);
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kit-user-signup-manual`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+              userId: data.user.id,
+              email: data.user.email,
+              firstName: options?.data?.full_name,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          console.error('[Auth] Failed to sync user to Kit:', await response.text());
+          // Don't throw - signup was successful, Kit sync is secondary
+        } else {
+          const result = await response.json();
+          console.log('[Auth] User synced to Kit:', result);
+        }
+      } catch (kitError) {
+        console.error('[Auth] Error syncing to Kit:', kitError);
+        // Don't throw - signup was successful, Kit sync is secondary
+      }
+    }
+
     return { error };
   };
 

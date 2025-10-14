@@ -26,6 +26,7 @@ export interface Database {
           has_seen_paywall: boolean
           onboarding_completed_at: string | null
           can_export_data: boolean
+          kit_subscriber_id: string | null
           created_at: string
           updated_at: string
           last_login_at: string
@@ -46,6 +47,7 @@ export interface Database {
           has_seen_paywall?: boolean
           onboarding_completed_at?: string | null
           can_export_data?: boolean
+          kit_subscriber_id?: string | null
           created_at?: string
           updated_at?: string
           last_login_at?: string
@@ -66,6 +68,7 @@ export interface Database {
           has_seen_paywall?: boolean
           onboarding_completed_at?: string | null
           can_export_data?: boolean
+          kit_subscriber_id?: string | null
           created_at?: string
           updated_at?: string
           last_login_at?: string

@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import Stripe from "npm:stripe@14.21.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { addSubscriberWithTags, tagSubscriberByEmail } from "../_shared/kit-api.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -60,6 +61,17 @@ Deno.serve(async (req: Request) => {
           session.subscription as string
         );
 
+        // Get user email for Kit tagging
+        const { data: userData, error: userError } = await supabaseClient
+          .from("users")
+          .select("email, kit_subscriber_id")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (userError || !userData) {
+          console.error("Failed to fetch user data:", userError);
+        }
+
         await supabaseClient
           .from("users")
           .update({
@@ -71,6 +83,36 @@ Deno.serve(async (req: Request) => {
             subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
           })
           .eq("id", userId);
+
+        // Tag user as "player-mode" in Kit
+        if (userData?.email) {
+          try {
+            console.log(`[Stripe Webhook] Tagging user in Kit as player-mode: ${userData.email}`);
+
+            // If user doesn't have Kit subscriber ID yet, add them first
+            if (!userData.kit_subscriber_id) {
+              console.log("[Stripe Webhook] User not in Kit yet, adding with player-mode tag");
+              const kitResult = await addSubscriberWithTags(
+                userData.email,
+                ["signed-up", "player-mode"]
+              );
+
+              // Update user with Kit subscriber ID
+              await supabaseClient
+                .from("users")
+                .update({ kit_subscriber_id: kitResult.subscriberId })
+                .eq("id", userId);
+            } else {
+              // User already in Kit, just tag them
+              await tagSubscriberByEmail(userData.email, "player-mode");
+            }
+
+            console.log("[Stripe Webhook] Successfully tagged user as player-mode in Kit");
+          } catch (kitError) {
+            console.error("[Stripe Webhook] Failed to tag user in Kit:", kitError);
+            // Don't fail the webhook - subscription was processed successfully
+          }
+        }
 
         break;
       }
@@ -115,6 +157,17 @@ Deno.serve(async (req: Request) => {
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
 
+        // Get user email for Kit tagging
+        const { data: cancelledUser, error: cancelledUserError } = await supabaseClient
+          .from("users")
+          .select("email, kit_subscriber_id")
+          .eq("stripe_subscription_id", subscription.id)
+          .maybeSingle();
+
+        if (cancelledUserError) {
+          console.error("Failed to fetch user for cancellation:", cancelledUserError);
+        }
+
         await supabaseClient
           .from("users")
           .update({
@@ -124,6 +177,30 @@ Deno.serve(async (req: Request) => {
             subscription_plan_type: null,
           })
           .eq("stripe_subscription_id", subscription.id);
+
+        // Tag user as "cancelled" in Kit
+        if (cancelledUser?.email) {
+          try {
+            console.log(`[Stripe Webhook] Tagging cancelled user in Kit: ${cancelledUser.email}`);
+
+            // If user doesn't have Kit subscriber ID yet (edge case), add them first
+            if (!cancelledUser.kit_subscriber_id) {
+              console.log("[Stripe Webhook] User not in Kit yet, adding with cancelled tag");
+              await addSubscriberWithTags(
+                cancelledUser.email,
+                ["signed-up", "cancelled"]
+              );
+            } else {
+              // User already in Kit, just tag them
+              await tagSubscriberByEmail(cancelledUser.email, "cancelled");
+            }
+
+            console.log("[Stripe Webhook] Successfully tagged user as cancelled in Kit");
+          } catch (kitError) {
+            console.error("[Stripe Webhook] Failed to tag cancelled user in Kit:", kitError);
+            // Don't fail the webhook - cancellation was processed successfully
+          }
+        }
 
         break;
       }
