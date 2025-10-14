@@ -69,7 +69,7 @@ async function kitRequest(
 
   const headers = {
     "Content-Type": "application/json",
-    "Authorization": `Bearer ${config.apiKey}`,
+    "X-Kit-Api-Key": config.apiKey,
     ...options.headers,
   };
 
@@ -157,53 +157,42 @@ export async function addSubscriberToKit(
     body.first_name = params.firstName;
   }
 
-  // Add to form if form ID is configured
+  // Step 1: Create subscriber first (Kit v4 requires this)
+  const createResponse = await kitRequest("/subscribers", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+  const createData = await createResponse.json();
+  const subscriber = createData.subscriber;
+
+  console.log(`[Kit API] Successfully created subscriber: ${subscriber.id}`);
+
+  // Step 2: Add to form if form ID is configured
   if (config.formId) {
-    const response = await kitRequest(`/forms/${config.formId}/subscribers`, {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
-
-    const data = await response.json();
-    const subscriber = data.subscriber;
-
-    console.log(`[Kit API] Successfully added subscriber to form: ${subscriber.id}`);
-
-    // Apply tags if provided
-    if (params.tags && params.tags.length > 0) {
-      for (const tagName of params.tags) {
-        await tagSubscriber({
-          subscriberId: subscriber.id,
-          tagName,
-        });
-      }
+    try {
+      await kitRequest(`/forms/${config.formId}/subscribers`, {
+        method: "POST",
+        body: JSON.stringify({ email_address: params.email }),
+      });
+      console.log(`[Kit API] Successfully added subscriber to form ${config.formId}`);
+    } catch (error) {
+      console.error(`[Kit API] Failed to add subscriber to form:`, error);
+      // Don't fail - subscriber was created successfully
     }
-
-    return subscriber;
-  } else {
-    // No form ID configured, add subscriber directly
-    const response = await kitRequest("/subscribers", {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
-
-    const data = await response.json();
-    const subscriber = data.subscriber;
-
-    console.log(`[Kit API] Successfully added subscriber: ${subscriber.id}`);
-
-    // Apply tags if provided
-    if (params.tags && params.tags.length > 0) {
-      for (const tagName of params.tags) {
-        await tagSubscriber({
-          subscriberId: subscriber.id,
-          tagName,
-        });
-      }
-    }
-
-    return subscriber;
   }
+
+  // Step 3: Apply tags if provided
+  if (params.tags && params.tags.length > 0) {
+    for (const tagName of params.tags) {
+      await tagSubscriber({
+        subscriberId: subscriber.id,
+        tagName,
+      });
+    }
+  }
+
+  return subscriber;
 }
 
 /**
@@ -259,12 +248,10 @@ export async function tagSubscriber(
   const tagId = await getOrCreateTag(tagName);
 
   // Apply tag to subscriber
-  // Kit v4 uses: POST /tags/:tag_id/subscribers
-  await kitRequest(`/tags/${tagId}/subscribers`, {
+  // Kit v4 uses: POST /tags/{tag_id}/subscribers/{subscriber_id} with empty body
+  await kitRequest(`/tags/${tagId}/subscribers/${subscriberId}`, {
     method: "POST",
-    body: JSON.stringify({
-      subscriber_id: subscriberId,
-    }),
+    body: JSON.stringify({}),
   });
 
   console.log(`[Kit API] Successfully tagged subscriber ${subscriberId} with "${tagName}"`);
