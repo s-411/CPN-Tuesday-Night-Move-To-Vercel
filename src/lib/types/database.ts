@@ -25,6 +25,7 @@ export interface Database {
           subscription_end_date: string | null
           has_seen_paywall: boolean
           onboarding_completed_at: string | null
+          can_export_data: boolean
           created_at: string
           updated_at: string
           last_login_at: string
@@ -44,6 +45,7 @@ export interface Database {
           subscription_end_date?: string | null
           has_seen_paywall?: boolean
           onboarding_completed_at?: string | null
+          can_export_data?: boolean
           created_at?: string
           updated_at?: string
           last_login_at?: string
@@ -63,6 +65,7 @@ export interface Database {
           subscription_end_date?: string | null
           has_seen_paywall?: boolean
           onboarding_completed_at?: string | null
+          can_export_data?: boolean
           created_at?: string
           updated_at?: string
           last_login_at?: string

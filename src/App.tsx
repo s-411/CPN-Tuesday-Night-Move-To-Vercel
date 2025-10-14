@@ -468,13 +468,18 @@ function AppContent() {
               />
             )}
             {activeView === 'overview' && (
-              <Overview
-                girls={girls}
-                onAddData={handleAddData}
-                onEdit={handleEditGirl}
-                onDelete={handleDeleteGirl}
-                onAddGirl={() => setShowAddGirlModal(true)}
-              />
+              <SubscriptionGate
+                isLocked={profile?.subscription_tier === 'boyfriend'}
+                featureName="Overview"
+              >
+                <Overview
+                  girls={girls}
+                  onAddData={handleAddData}
+                  onEdit={handleEditGirl}
+                  onDelete={handleDeleteGirl}
+                  onAddGirl={() => setShowAddGirlModal(true)}
+                />
+              </SubscriptionGate>
             )}
             {activeView === 'analytics' && (
               <SubscriptionGate
@@ -485,7 +490,12 @@ function AppContent() {
               </SubscriptionGate>
             )}
             {activeView === 'dataentry' && user && (
-              <DataEntry userId={user.id} onSuccess={loadGirls} />
+              <SubscriptionGate
+                isLocked={profile?.subscription_tier === 'boyfriend'}
+                featureName="Quick Data Entry"
+              >
+                <DataEntry userId={user.id} onSuccess={loadGirls} />
+              </SubscriptionGate>
             )}
             {activeView === 'datavault' && (
               <SubscriptionGate
@@ -530,14 +540,7 @@ function AppContent() {
                 )}
               </>
             )}
-            {activeView === 'sharecenter' && (
-              <SubscriptionGate
-                isLocked={profile?.subscription_tier === 'boyfriend'}
-                featureName="Share"
-              >
-                <ShareCenter />
-              </SubscriptionGate>
-            )}
+            {activeView === 'sharecenter' && <ShareCenter />}
             {activeView === 'settings' && <SettingsView user={user} profile={profile} girls={girls} onSignOut={signOut} onActivatePlayerMode={() => setShowUpgradeModal(true)} updateEmail={updateEmail} />}
             {activeView === 'mobilemenu' && (
               <MobileMenu
@@ -981,28 +984,30 @@ function SettingsView({ user, profile, girls, onSignOut, onActivatePlayerMode, u
             )}
           </div>
 
-        <div className="card-cpn">
-          <h3 className="text-xl mb-4">Data Management</h3>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-cpn-gray mb-2">Export all your data to CSV format for backup or analysis</p>
-              <button
-                className="btn-cpn"
-                onClick={() => exportGirlsData(girls)}
-                disabled={girls.length === 0}
-              >
-                Export All Data to CSV
-              </button>
-            </div>
-            <div className="p-3 bg-cpn-dark rounded-lg">
-              <p className="text-xs text-cpn-gray">
-                Total Profiles: <span className="text-white font-bold">{girls.length}</span>
-                {' • '}
-                Total Entries: <span className="text-white font-bold">{girls.reduce((sum, g) => sum + g.entryCount, 0)}</span>
-              </p>
+        {profile?.can_export_data && (
+          <div className="card-cpn">
+            <h3 className="text-xl mb-4">Data Management</h3>
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-cpn-gray mb-2">Export all your data to CSV format for backup or analysis</p>
+                <button
+                  className="btn-cpn"
+                  onClick={() => exportGirlsData(girls)}
+                  disabled={girls.length === 0}
+                >
+                  Export All Data to CSV
+                </button>
+              </div>
+              <div className="p-3 bg-cpn-dark rounded-lg">
+                <p className="text-xs text-cpn-gray">
+                  Total Profiles: <span className="text-white font-bold">{girls.length}</span>
+                  {' • '}
+                  Total Entries: <span className="text-white font-bold">{girls.reduce((sum, g) => sum + g.entryCount, 0)}</span>
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="card-cpn">
           <h3 className="text-xl mb-4 text-red-500">Sign Out</h3>
