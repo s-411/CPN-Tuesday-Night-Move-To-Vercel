@@ -95,11 +95,11 @@ Your `.env.local` is already configured for local development:
 - Uses safe development keys
 - **Never affects production**
 
-To switch between local and production, see [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md)
+To switch between local and production, see [LOCAL_DEVELOPMENT.md](./docs/local/LOCAL_DEVELOPMENT.md)
 
 ## Need Help?
 
-See [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md) for detailed documentation.
+See [LOCAL_DEVELOPMENT.md](./docs/local/LOCAL_DEVELOPMENT.md) for detailed documentation.
 
 ## Common Issues
 

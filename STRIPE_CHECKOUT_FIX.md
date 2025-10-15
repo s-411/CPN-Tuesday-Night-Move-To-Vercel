@@ -52,7 +52,7 @@ VITE_APP_URL=http://localhost:3000  # Changed from 5173
 
 ### 4. Documentation Added
 
-- **[LOCAL_DEV_WITH_STRIPE.md](LOCAL_DEV_WITH_STRIPE.md)** - Complete guide for Stripe development
+- **[LOCAL_DEV_WITH_STRIPE.md](docs/local/LOCAL_DEV_WITH_STRIPE.md)** - Complete guide for Stripe development
 - **[QUICKSTART.md](QUICKSTART.md)** - Updated with correct port info
 
 ## How to Use Now

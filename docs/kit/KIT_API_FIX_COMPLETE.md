@@ -43,10 +43,9 @@ The Kit.com API integration is now **fully functional** and tested successfully.
 
 ### 4. **Invalid API Key** ❌ → ✅
 **Problem:** First API key was not working
-**Fix:** Generated new API key
+**Fix:** Migrated to new Kit account with new API key
 
-**Old key:** `kit_b4a8dc959884b5317eb2b7244bdd5f54`
-**New key:** `kit_3242ed4aac86c001697b0d24b04295ef`
+**Current key:** `kit_b0cdf11ceffbe1deb5dee542ced4fa2f`
 
 ---
 
@@ -74,11 +73,11 @@ The Kit.com API integration is now **fully functional** and tested successfully.
 ### Vercel Environment Variables
 **YOU NEED TO UPDATE THIS:**
 - Go to Vercel Dashboard → Settings → Environment Variables
-- **Update** `KIT_API_KEY` to: `kit_3242ed4aac86c001697b0d24b04295ef`
+- **Update** `KIT_API_KEY` to: `kit_b0cdf11ceffbe1deb5dee542ced4fa2f`
 
 ### Supabase Secrets
 ✅ Already updated via CLI:
-- `KIT_API_KEY=kit_3242ed4aac86c001697b0d24b04295ef`
+- `KIT_API_KEY=kit_b0cdf11ceffbe1deb5dee542ced4fa2f`
 - `KIT_FORM_ID=8220547`
 
 ### Local Environment
@@ -96,7 +95,7 @@ Now that the Edge Functions are working, you need to **update Vercel** and redep
 2. Select your CPN project
 3. Settings → Environment Variables
 4. Find `KIT_API_KEY`
-5. Edit and change to: `kit_3242ed4aac86c001697b0d24b04295ef`
+5. Edit and change to: `kit_b0cdf11ceffbe1deb5dee542ced4fa2f`
 6. Save
 
 ### Step 2: Redeploy Your App

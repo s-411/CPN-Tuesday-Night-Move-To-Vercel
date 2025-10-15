@@ -35,7 +35,7 @@ KIT_FORM_ID=123456
 
 Your Kit API key is already set:
 ```bash
-KIT_API_KEY=kit_b4a8dc959884b5317eb2b7244bdd5f54
+KIT_API_KEY=kit_b0cdf11ceffbe1deb5dee542ced4fa2f
 ```
 
 ### 3. **Start Docker** (Required!)
@@ -92,7 +92,7 @@ Then check your Kit dashboard - you should see a test subscriber with timestamp 
 
 For complete step-by-step testing (signup, subscribe, cancel flows):
 
-👉 **[KIT_INTEGRATION_TESTING.md](docs/KIT_INTEGRATION_TESTING.md)**
+👉 **[KIT_INTEGRATION_TESTING.md](./KIT_INTEGRATION_TESTING.md)**
 
 ---
 
@@ -100,10 +100,10 @@ For complete step-by-step testing (signup, subscribe, cancel flows):
 
 | File | Purpose | When to Use |
 |------|---------|-------------|
-| **[KIT_INTEGRATION_QUICKSTART.md](docs/KIT_INTEGRATION_QUICKSTART.md)** | 5-minute setup guide | Getting started |
-| **[KIT_INTEGRATION_TESTING.md](docs/KIT_INTEGRATION_TESTING.md)** | Step-by-step testing | Testing locally |
-| **[KIT_INTEGRATION.md](docs/KIT_INTEGRATION.md)** | Full technical docs | Reference/troubleshooting |
-| **[KIT_INTEGRATION_SUMMARY.md](docs/KIT_INTEGRATION_SUMMARY.md)** | Implementation summary | Overview of what was built |
+| **[KIT_INTEGRATION_QUICKSTART.md](./KIT_INTEGRATION_QUICKSTART.md)** | 5-minute setup guide | Getting started |
+| **[KIT_INTEGRATION_TESTING.md](./KIT_INTEGRATION_TESTING.md)** | Step-by-step testing | Testing locally |
+| **[KIT_INTEGRATION.md](./KIT_INTEGRATION.md)** | Full technical docs | Reference/troubleshooting |
+| **[KIT_INTEGRATION_SUMMARY.md](./KIT_INTEGRATION_SUMMARY.md)** | Implementation summary | Overview of what was built |
 
 ---
 
@@ -176,7 +176,7 @@ Integration is working when:
 2. Update `.env.local`
 3. Start Docker + Supabase
 4. Run quick test (above)
-5. Follow full testing guide: [KIT_INTEGRATION_TESTING.md](docs/KIT_INTEGRATION_TESTING.md)
+5. Follow full testing guide: [KIT_INTEGRATION_TESTING.md](./KIT_INTEGRATION_TESTING.md)
 
 ---
 

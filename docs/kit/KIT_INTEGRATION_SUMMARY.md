@@ -120,7 +120,7 @@ Database: Update subscription_tier = "boyfriend"
 
 ### Required
 ```bash
-KIT_API_KEY=kit_b4a8dc959884b5317eb2b7244bdd5f54  # Your Kit v4 API key
+KIT_API_KEY=kit_b0cdf11ceffbe1deb5dee542ced4fa2f  # Your Kit v4 API key
 ```
 
 ### Optional

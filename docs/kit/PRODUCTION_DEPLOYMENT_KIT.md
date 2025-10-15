@@ -16,7 +16,7 @@ Since you have no paying users yet, deploying straight to production is the smar
 
 | Variable Name | Value | Environment |
 |--------------|-------|-------------|
-| `KIT_API_KEY` | `kit_b4a8dc959884b5317eb2b7244bdd5f54` | Production |
+| `KIT_API_KEY` | `kit_b0cdf11ceffbe1deb5dee542ced4fa2f` | Production |
 | `KIT_FORM_ID` | `8220547` | Production |
 
 **Steps:**
@@ -24,7 +24,7 @@ Since you have no paying users yet, deploying straight to production is the smar
 2. Select your CPN-Live project
 3. Click **Settings** → **Environment Variables**
 4. Click **Add New**
-5. Add `KIT_API_KEY` with value `kit_b4a8dc959884b5317eb2b7244bdd5f54`
+5. Add `KIT_API_KEY` with value `kit_b0cdf11ceffbe1deb5dee542ced4fa2f`
 6. Select **Production** environment
 7. Click **Save**
 8. Repeat for `KIT_FORM_ID` with value `8220547`
@@ -44,7 +44,7 @@ Your Edge Functions run on Supabase servers and need access to Kit credentials.
 5. Add these secrets:
 
 ```bash
-KIT_API_KEY = kit_b4a8dc959884b5317eb2b7244bdd5f54
+KIT_API_KEY = kit_b0cdf11ceffbe1deb5dee542ced4fa2f
 KIT_FORM_ID = 8220547
 ```
 
@@ -58,7 +58,7 @@ supabase login
 supabase link --project-ref mgcmkwrtjpkxmjjixyiy
 
 # Set secrets
-supabase secrets set KIT_API_KEY=kit_b4a8dc959884b5317eb2b7244bdd5f54
+supabase secrets set KIT_API_KEY=kit_b0cdf11ceffbe1deb5dee542ced4fa2f
 supabase secrets set KIT_FORM_ID=8220547
 ```
 
@@ -263,7 +263,7 @@ supabase functions deploy stripe-webhook
 Use this as you deploy:
 
 - [ ] **Vercel environment variables added**
-  - [ ] `KIT_API_KEY=kit_b4a8dc959884b5317eb2b7244bdd5f54`
+  - [ ] `KIT_API_KEY=kit_b0cdf11ceffbe1deb5dee542ced4fa2f`
   - [ ] `KIT_FORM_ID=8220547`
 
 - [ ] **Supabase Edge Function secrets added**

@@ -38,7 +38,7 @@ Key differences from v3:
 
 ```bash
 # Kit API v4 Key
-KIT_API_KEY=kit_b4a8dc959884b5317eb2b7244bdd5f54
+KIT_API_KEY=kit_b0cdf11ceffbe1deb5dee542ced4fa2f
 
 # Kit Form ID (optional - to add subscribers to a specific form)
 KIT_FORM_ID=8220547

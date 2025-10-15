@@ -14,7 +14,7 @@
 
 Add to `.env.local`:
 ```bash
-KIT_API_KEY=kit_b4a8dc959884b5317eb2b7244bdd5f54
+KIT_API_KEY=kit_b0cdf11ceffbe1deb5dee542ced4fa2f
 KIT_FORM_ID=8220547  # Optional
 ```
 
