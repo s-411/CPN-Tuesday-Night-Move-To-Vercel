@@ -18,7 +18,7 @@ interface AnalyticsProps {
   girls: Girl[];
 }
 
-type Category = 'all' | 'metrics' | 'spending' | 'time' | 'cost-efficiency';
+type Category = 'all' | 'spending' | 'time' | 'cost-efficiency';
 
 const GIRL_COLORS: Record<string, string> = {
   'Sarah': '#4A90E2',
@@ -28,7 +28,25 @@ const GIRL_COLORS: Record<string, string> = {
 };
 
 const getGirlColor = (name: string, index: number): string => {
-  return GIRL_COLORS[name] || ['#f2f661', '#60a5fa', '#4ade80', '#f87171', '#c084fc', '#fb923c'][index % 6];
+  // Pastel colors for first 7 girls, then vibrant variations for 8-15
+  const defaultColors = [
+    '#fda4af', // 1. Pink (pastel rose)
+    '#60a5fa', // 2. Blue (pastel)
+    '#4ade80', // 3. Green (pastel)
+    '#fb923c', // 4. Orange
+    '#f87171', // 5. Red (pastel coral)
+    '#fde047', // 6. Yellow (lighter, less harsh)
+    '#c084fc', // 7. Purple (pastel)
+    '#2dd4bf', // 8. Teal (vibrant)
+    '#818cf8', // 9. Indigo (vibrant)
+    '#10b981', // 10. Emerald (vibrant)
+    '#fbbf24', // 11. Amber (vibrant)
+    '#e879f9', // 12. Fuchsia (vibrant)
+    '#22d3ee', // 13. Cyan (vibrant)
+    '#84cc16', // 14. Lime (vibrant)
+    '#38bdf8', // 15. Sky (vibrant)
+  ];
+  return GIRL_COLORS[name] || defaultColors[index % defaultColors.length];
 };
 
 export function Analytics({ girls }: AnalyticsProps) {
@@ -387,7 +405,7 @@ export function Analytics({ girls }: AnalyticsProps) {
       <div className="card-cpn">
         <h3 className="text-lg mb-4">Analytics Reports Categories</h3>
         <div className="flex flex-wrap gap-2">
-          {(['all', 'metrics', 'spending', 'time', 'cost-efficiency'] as Category[]).map((cat) => (
+          {(['all', 'spending', 'time', 'cost-efficiency'] as Category[]).map((cat) => (
             <button
               key={cat}
               className={category === cat ? 'btn-cpn' : 'btn-secondary'}
