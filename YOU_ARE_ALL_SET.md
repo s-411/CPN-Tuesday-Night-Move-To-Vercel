@@ -67,8 +67,8 @@ npm run upgrade your-email@example.com
 
 - **[QUICKSTART.md](QUICKSTART.md)** - Quick reference
 - **[LOCAL_PREMIUM_ACCESS.md](LOCAL_PREMIUM_ACCESS.md)** - How to get premium locally
-- **[LOCAL_DEVELOPMENT.md](LOCAL_DEVELOPMENT.md)** - Complete guide
-- **[LOCAL_DEV_SUMMARY.md](LOCAL_DEV_SUMMARY.md)** - Setup summary
+- **[LOCAL_DEVELOPMENT.md](docs/local/LOCAL_DEVELOPMENT.md)** - Complete guide
+- **[LOCAL_DEV_SUMMARY.md](docs/local/LOCAL_DEV_SUMMARY.md)** - Setup summary
 
 ---
 
