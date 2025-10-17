@@ -4,10 +4,12 @@ import { getStep1, getStep2, setStep3, setState } from '../../lib/onboarding/ses
 import { useAuth } from '../../contexts/AuthContext';
 import { commitOnboardingToSupabase } from '../../lib/onboarding/commit';
 import { OnboardingLayout } from '../../components/OnboardingLayout';
+import { validateSingleWordName } from '../../lib/validation/nameValidation';
 
 export function Step3() {
   const { signUp } = useAuth();
   const [name, setName] = useState('');
+  const [nameError, setNameError] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,9 +31,10 @@ export function Step3() {
 
   const handleSubmit = async () => {
     setError('');
-    
-    if (!name.trim()) {
-      setError('Please enter your name');
+
+    const nameValidation = validateSingleWordName(name);
+    if (!nameValidation.valid) {
+      setError(nameValidation.error || 'Please enter your name');
       return;
     }
     if (!email || !password) {
@@ -115,9 +118,17 @@ export function Step3() {
                 className="input-cpn w-full"
                 placeholder="Your first name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  const newName = e.target.value;
+                  const validation = validateSingleWordName(newName);
+                  setNameError(validation.error || '');
+                  setName(newName);
+                }}
                 disabled={loading || success}
               />
+              {nameError && (
+                <p className="text-red-400 text-xs mt-1">{nameError}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm text-cpn-gray mb-2">

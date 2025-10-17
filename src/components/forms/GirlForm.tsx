@@ -1,4 +1,6 @@
 import { RatingTileSelector } from '../RatingTileSelector';
+import { validateSingleWordName } from '../../lib/validation/nameValidation';
+import { useState } from 'react';
 
 export interface GirlFormValue {
   name: string;
@@ -27,6 +29,8 @@ export function GirlForm({
   submitLabel?: string;
   secondaryAction?: { label: string; onClick: () => void };
 }) {
+  const [nameError, setNameError] = useState('');
+
   return (
     <form
       onSubmit={(e) => {
@@ -52,10 +56,18 @@ export function GirlForm({
             className="input-cpn w-full"
             placeholder="Enter her first name"
             value={value.name}
-            onChange={(e) => onChange({ ...value, name: e.target.value })}
+            onChange={(e) => {
+              const newName = e.target.value;
+              const validation = validateSingleWordName(newName);
+              setNameError(validation.error || '');
+              onChange({ ...value, name: newName });
+            }}
             required
             disabled={!!loading}
           />
+          {nameError && (
+            <p className="text-red-400 text-xs mt-1">{nameError}</p>
+          )}
         </div>
 
         <div>

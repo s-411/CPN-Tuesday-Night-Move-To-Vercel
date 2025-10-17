@@ -51,6 +51,7 @@ export function ShareCenter() {
   const [showImageModal, setShowImageModal] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [filename, setFilename] = useState('');
+  const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -261,9 +262,7 @@ export function ShareCenter() {
         `).join('')}
         <div style="margin-top: 80px; padding: 0 60px;">
           <p style="font-size: 56px; color: #999; margin: 0 0 40px 0; text-align: center; line-height: 1;">Discover your CPN</p>
-          <div style="background: #f2f661; color: #1a1a1a; border-radius: 100px; width: 100%; font-size: 28px; font-weight: bold; text-align: center; display: flex; align-items: center; justify-content: center; height: 80px; box-sizing: border-box; line-height: 1;">
-            Try for free →
-          </div>
+          <p style="font-size: 72px; color: #ffffff; margin: 0; text-align: center; font-weight: bold; line-height: 1;">cost-per-nut.com</p>
         </div>
       `;
 
@@ -334,6 +333,105 @@ export function ShareCenter() {
     setGeneratedImage(null);
     setSelectedMetrics([]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const generateProfileImage = async () => {
+    if (selectedProfiles.length === 0) return;
+
+    setIsGeneratingProfile(true);
+
+    try {
+      const selectedProfileData = profileStats.filter(p => selectedProfiles.includes(p.id));
+
+      // Create hidden template element
+      const template = document.createElement('div');
+      template.style.position = 'absolute';
+      template.style.left = '-9999px';
+      template.style.width = '1080px';
+      template.style.height = '1920px';
+      template.style.backgroundColor = '#1a1a1a';
+      template.style.padding = '80px 60px';
+      template.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+      template.style.color = '#ffffff';
+
+      // Add content
+      template.innerHTML = `
+        <div style="text-align: center; margin-bottom: 60px;">
+          <img src="/CPN fav.png" alt="CPN Logo" style="max-width: 60px; height: auto; margin: 0 auto 30px auto; display: block;" />
+          <h1 style="font-size: 64px; color: #ffffff; margin: 0 0 20px 0; font-weight: bold; line-height: 1.2;">Profile Statistics</h1>
+          <p style="font-size: 28px; color: #999; margin: 0;">${selectedProfileData.length} Profile${selectedProfileData.length > 1 ? 's' : ''}</p>
+        </div>
+        ${selectedProfileData.map(profile => `
+          <div style="background: #2a2a2a; border: 2px solid #f2f661; border-radius: 20px; padding: 40px; margin-bottom: 40px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px;">
+              <h2 style="font-size: 48px; color: #ffffff; margin: 0;">${profile.name}</h2>
+              <div style="font-size: 32px; color: #999;">⭐ ${profile.rating.toFixed(1)}/10</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+              <div>
+                <p style="font-size: 24px; color: #999; margin: 0 0 10px 0;">Total Spent</p>
+                <p style="font-size: 48px; color: #ffffff; font-weight: bold; margin: 0;">$${profile.totalSpent.toFixed(2)}</p>
+              </div>
+              <div>
+                <p style="font-size: 24px; color: #999; margin: 0 0 10px 0;">Cost per Nut</p>
+                <p style="font-size: 48px; color: #f2f661; font-weight: bold; margin: 0;">$${profile.costPerNut.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+        <div style="margin-top: 80px; padding: 0 60px;">
+          <p style="font-size: 56px; color: #999; margin: 0 0 40px 0; text-align: center; line-height: 1;">Discover your CPN</p>
+          <p style="font-size: 72px; color: #ffffff; margin: 0; text-align: center; font-weight: bold; line-height: 1;">cost-per-nut.com</p>
+        </div>
+      `;
+
+      document.body.appendChild(template);
+
+      // Generate canvas
+      const canvas = await html2canvas(template, {
+        width: 1080,
+        height: 1920,
+        backgroundColor: '#1a1a1a',
+        scale: 2
+      });
+
+      document.body.removeChild(template);
+
+      const dataUrl = canvas.toDataURL('image/png');
+      const profileNames = selectedProfileData.map(p => p.name.toLowerCase().replace(/\s+/g, '-')).join('-');
+      const generatedFilename = `cpn-profile-${profileNames}-${new Date().toISOString().split('T')[0]}`;
+
+      // Convert profile data to metric format for consistency
+      const profileMetrics: Metric[] = selectedProfileData.map(profile => ({
+        id: profile.id,
+        category: 'Highlight' as const,
+        icon: <Users size={24} />,
+        title: profile.name,
+        description: `Rating: ${profile.rating.toFixed(1)}/10 | Spent: $${profile.totalSpent.toFixed(2)}`,
+        value: `$${profile.costPerNut.toFixed(2)} per nut`,
+        rawValue: profile.costPerNut
+      }));
+
+      setGeneratedImage({
+        dataUrl,
+        selectedMetrics: profileMetrics,
+        timestamp: Date.now(),
+        filename: generatedFilename
+      });
+
+      setFilename(generatedFilename);
+      showToast('Profile image generated successfully!', 'success');
+
+      // Scroll to generated image section
+      setTimeout(() => {
+        document.getElementById('generated-image-section')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } catch (error) {
+      console.error('Error generating profile image:', error);
+      showToast('Failed to generate image. Please try again.', 'error');
+    } finally {
+      setIsGeneratingProfile(false);
+    }
   };
 
   const filteredMetrics = activeCategories.length === 0
@@ -595,8 +693,19 @@ export function ShareCenter() {
 
         {selectedProfiles.length > 0 && (
           <div className="text-center">
-            <button className="btn-cpn px-8 py-3 text-lg font-semibold">
-              Generate Profile {selectedProfiles.length > 1 ? 'Images' : 'Image'}
+            <button
+              onClick={generateProfileImage}
+              disabled={selectedProfiles.length === 0 || isGeneratingProfile}
+              className="btn-cpn px-8 py-3 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+            >
+              {isGeneratingProfile ? (
+                <>
+                  <Loader size={20} className="animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                'Generate Image'
+              )}
             </button>
           </div>
         )}

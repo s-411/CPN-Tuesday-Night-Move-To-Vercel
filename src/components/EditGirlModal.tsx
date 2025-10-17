@@ -3,6 +3,7 @@ import { Modal } from './Modal';
 import { RatingTileSelector } from './RatingTileSelector';
 import { supabase } from '../lib/supabase/client';
 import { Database } from '../lib/types/database';
+import { validateSingleWordName } from '../lib/validation/nameValidation';
 
 type Girl = Database['public']['Tables']['girls']['Row'];
 
@@ -39,6 +40,7 @@ const HAIR_COLORS = [
 
 export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModalProps) {
   const [name, setName] = useState(girl.name);
+  const [nameError, setNameError] = useState('');
   const [age, setAge] = useState(girl.age.toString());
   const [ethnicity, setEthnicity] = useState(girl.ethnicity || '');
   const [hairColor, setHairColor] = useState(girl.hair_color || '');
@@ -118,10 +120,18 @@ export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModa
               className="input-cpn w-full"
               placeholder="Enter name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                const newName = e.target.value;
+                const validation = validateSingleWordName(newName);
+                setNameError(validation.error || '');
+                setName(newName);
+              }}
               required
               disabled={loading}
             />
+            {nameError && (
+              <p className="text-red-400 text-xs mt-1">{nameError}</p>
+            )}
           </div>
 
           <div>

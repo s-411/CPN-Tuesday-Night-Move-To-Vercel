@@ -28,7 +28,7 @@ import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import SubscriptionGate from './components/SubscriptionGate';
 import { supabase } from './lib/supabase/client';
 import { Database } from './lib/types/database';
-import { calculateCostPerNut, calculateTimePerNut, calculateCostPerHour, formatCurrency, formatRating } from './lib/calculations';
+import { calculateCostPerNut, calculateTimePerNut, calculateCostPerHour, formatCurrency, formatRating, formatTime } from './lib/calculations';
 import { exportGirlsData } from './lib/export';
 import { getStep1 as getOnboardStep1, getStep2 as getOnboardStep2 } from './lib/onboarding/session';
 import { goTo } from './lib/navigation';
@@ -705,12 +705,34 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h3 className="font-bold" style={{ fontSize: '2.25rem', lineHeight: '2.75rem' }}>{girl.name}</h3>
-                    <p className="text-cpn-gray text-sm">{girl.age} years old</p>
+                    <p className="text-cpn-gray text-sm">{girl.age} • {girl.nationality || 'American'}</p>
                     <p className="text-cpn-yellow text-sm mt-1">{formatRating(girl.rating)}</p>
                   </div>
-                  {!girl.is_active && (
-                    <span className="px-2 py-1 text-xs bg-cpn-gray/20 text-cpn-gray rounded">Inactive</span>
-                  )}
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      try {
+                        const { error } = await supabase
+                          .from('girls')
+                          .update({ is_active: !girl.is_active })
+                          .eq('id', girl.id);
+                        if (error) throw error;
+                      } catch (error) {
+                        console.error('Error toggling active status:', error);
+                      }
+                    }}
+                    className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none"
+                    style={{
+                      backgroundColor: girl.is_active ? '#52D726' : 'rgba(171, 171, 171, 0.3)'
+                    }}
+                  >
+                    <span
+                      className="inline-block h-5 w-5 transform rounded-full bg-white transition-transform"
+                      style={{
+                        transform: girl.is_active ? 'translateX(26px)' : 'translateX(4px)'
+                      }}
+                    />
+                  </button>
                 </div>
 
                 <div className="space-y-2 mb-4">
@@ -727,15 +749,25 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
                     <span className="font-bold text-cpn-yellow">{formatCurrency(girl.costPerNut)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-cpn-gray">Entries</span>
-                    <span className="font-bold">{girl.entryCount}</span>
+                    <span className="text-cpn-gray">Total Time</span>
+                    <span className="font-bold">{formatTime(girl.totalTime)}</span>
                   </div>
+                </div>
+
+                <div className="text-cpn-gray text-sm mb-4">
+                  {girl.entryCount} entries
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 <button
-                  className="btn-cpn flex-1 flex items-center justify-center gap-2"
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 font-bold transition-all duration-200"
+                  style={{
+                    border: '2px solid var(--color-cpn-yellow)',
+                    borderRadius: '100px',
+                    backgroundColor: 'var(--color-cpn-dark)',
+                    color: 'var(--color-cpn-yellow)'
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onAddData(girl);
@@ -745,7 +777,13 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
                   Add Data
                 </button>
                 <button
-                  className="btn-secondary px-4"
+                  className="px-4 py-3 transition-all duration-200"
+                  style={{
+                    border: '1px solid rgba(171, 171, 171, 0.2)',
+                    borderRadius: '100px',
+                    backgroundColor: 'var(--color-cpn-dark2)',
+                    color: 'var(--color-cpn-white)'
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onEdit(girl);
@@ -754,13 +792,18 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
                   <Edit size={16} />
                 </button>
                 <button
-                  className="btn-danger px-4"
+                  className="px-4 py-3 transition-all duration-200"
+                  style={{
+                    border: '1px solid rgba(171, 171, 171, 0.2)',
+                    borderRadius: '100px',
+                    backgroundColor: 'var(--color-cpn-dark2)'
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete(girl);
                   }}
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={16} className="text-red-500" />
                 </button>
               </div>
             </div>

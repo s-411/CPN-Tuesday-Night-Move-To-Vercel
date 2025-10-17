@@ -213,7 +213,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetPassword = async (email: string) => {
-    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const appUrl = import.meta.env.VITE_APP_URL ||
+                   (typeof window !== 'undefined' ? window.location.origin : 'https://cpn-live.vercel.app');
+    console.log('[Auth] Password reset redirect URL:', `${appUrl}/password-update`);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${appUrl}/password-update`,
     });
