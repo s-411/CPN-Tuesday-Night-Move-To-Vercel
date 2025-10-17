@@ -23,6 +23,11 @@ export function Leaderboards({ onNavigateToGroup, refreshTrigger }: Leaderboards
     }
   }, [user, refreshTrigger]); // Reload when refreshTrigger changes
 
+  // Log profile changes to help debug realtime updates
+  useEffect(() => {
+    console.log('[Leaderboards] Profile display_name changed:', profile?.display_name);
+  }, [profile?.display_name]);
+
   const loadGroups = async () => {
     if (!user) return;
 
@@ -39,7 +44,7 @@ export function Leaderboards({ onNavigateToGroup, refreshTrigger }: Leaderboards
   };
 
   const handleCreateGroup = async () => {
-    if (!user) return;
+    if (!user || !profile?.display_name) return;
 
     if (!groupName.trim()) {
       setError('Group name is required');
@@ -52,7 +57,7 @@ export function Leaderboards({ onNavigateToGroup, refreshTrigger }: Leaderboards
     }
 
     try {
-      const { data, error } = await createGroup(groupName.trim(), user.id);
+      const { data, error } = await createGroup(groupName.trim(), user.id, profile.display_name);
       if (error) throw new Error(error);
 
       setGroupName('');
