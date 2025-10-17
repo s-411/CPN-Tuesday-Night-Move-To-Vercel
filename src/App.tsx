@@ -463,6 +463,10 @@ function AppContent() {
                 subscriptionTier={profile?.subscription_tier || 'free'}
                 onActivatePlayerMode={() => setShowUpgradeModal(true)}
                 onRefresh={loadGirls}
+                totalGirls={girls.length}
+                activeGirlsCount={activeGirls.length}
+                totalSpent={totalSpent}
+                totalNuts={totalNuts}
               />
             )}
             {activeView === 'overview' && (
@@ -659,9 +663,13 @@ interface GirlsViewProps {
   subscriptionTier: string;
   onActivatePlayerMode: () => void;
   onRefresh: () => void;
+  totalGirls?: number;
+  activeGirlsCount?: number;
+  totalSpent?: number;
+  totalNuts?: number;
 }
 
-function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail, canAddGirl, subscriptionTier, onActivatePlayerMode, onRefresh }: GirlsViewProps) {
+function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail, canAddGirl, subscriptionTier, onActivatePlayerMode, onRefresh, totalGirls = 0, activeGirlsCount = 0, totalSpent = 0, totalNuts = 0 }: GirlsViewProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -672,6 +680,29 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
         <button className="btn-cpn" onClick={onAddGirl} disabled={!canAddGirl}>
           Add New Girl
         </button>
+      </div>
+
+      {/* Statistics Boxes */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card-cpn">
+          <p className="text-cpn-gray text-sm mb-2">Total Girls</p>
+          <p className="text-4xl font-bold">{totalGirls}</p>
+        </div>
+
+        <div className="card-cpn">
+          <p className="text-cpn-gray text-sm mb-2">Active Girls</p>
+          <p className="text-4xl font-bold">{activeGirlsCount}</p>
+        </div>
+
+        <div className="card-cpn">
+          <p className="text-cpn-gray text-sm mb-2">Total Spent</p>
+          <p className="text-4xl font-bold text-cpn-yellow">{formatCurrency(totalSpent)}</p>
+        </div>
+
+        <div className="card-cpn">
+          <p className="text-cpn-gray text-sm mb-2">Total Nuts</p>
+          <p className="text-4xl font-bold">{totalNuts}</p>
+        </div>
       </div>
 
       {!canAddGirl && subscriptionTier === 'boyfriend' && (
@@ -697,69 +728,64 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {girls.map((girl) => (
             <div key={girl.id} className="card-cpn">
-              <div
-                className="cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => onViewDetail(girl)}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-bold" style={{ fontSize: '2.25rem', lineHeight: '2.75rem' }}>{girl.name}</h3>
-                    <p className="text-cpn-gray text-sm">{girl.age} • {girl.nationality || 'American'}</p>
-                    <p className="text-cpn-yellow text-sm mt-1">{formatRating(girl.rating)}</p>
-                  </div>
-                  <button
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      try {
-                        const { error } = await supabase
-                          .from('girls')
-                          .update({ is_active: !girl.is_active })
-                          .eq('id', girl.id);
-                        if (error) throw error;
-                        await onRefresh();
-                      } catch (error) {
-                        console.error('Error toggling active status:', error);
-                      }
-                    }}
-                    className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none"
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="font-bold" style={{ fontSize: '2.25rem', lineHeight: '2.75rem' }}>{girl.name}</h3>
+                  <p className="text-cpn-gray text-sm">{girl.age} • {girl.nationality || 'American'}</p>
+                  <p className="text-cpn-yellow text-sm mt-1">{formatRating(girl.rating)}</p>
+                </div>
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      const { error } = await supabase
+                        .from('girls')
+                        .update({ is_active: !girl.is_active })
+                        .eq('id', girl.id);
+                      if (error) throw error;
+                      await onRefresh();
+                    } catch (error) {
+                      console.error('Error toggling active status:', error);
+                    }
+                  }}
+                  className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none"
+                  style={{
+                    backgroundColor: girl.is_active ? '#52D726' : 'rgba(171, 171, 171, 0.3)'
+                  }}
+                >
+                  <span
+                    className="inline-block h-5 w-5 transform rounded-full bg-white transition-transform"
                     style={{
-                      backgroundColor: girl.is_active ? '#52D726' : 'rgba(171, 171, 171, 0.3)'
+                      transform: girl.is_active ? 'translateX(26px)' : 'translateX(4px)'
                     }}
-                  >
-                    <span
-                      className="inline-block h-5 w-5 transform rounded-full bg-white transition-transform"
-                      style={{
-                        transform: girl.is_active ? 'translateX(26px)' : 'translateX(4px)'
-                      }}
-                    />
-                  </button>
-                </div>
+                  />
+                </button>
+              </div>
 
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-cpn-gray">Total Spent</span>
-                    <span className="font-bold">{formatCurrency(girl.totalSpent)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-cpn-gray">Total Nuts</span>
-                    <span className="font-bold">{girl.totalNuts}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-cpn-gray">Cost/Nut</span>
-                    <span className="font-bold text-cpn-yellow">{formatCurrency(girl.costPerNut)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-cpn-gray">Total Time</span>
-                    <span className="font-bold">{formatTime(girl.totalTime)}</span>
-                  </div>
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-cpn-gray">Total Spent</span>
+                  <span className="font-bold">{formatCurrency(girl.totalSpent)}</span>
                 </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-cpn-gray">Total Nuts</span>
+                  <span className="font-bold">{girl.totalNuts}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-cpn-gray">Cost/Nut</span>
+                  <span className="font-bold text-cpn-yellow">{formatCurrency(girl.costPerNut)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-cpn-gray">Total Time</span>
+                  <span className="font-bold">{formatTime(girl.totalTime)}</span>
+                </div>
+              </div>
 
-                <div className="text-cpn-gray text-sm mb-4">
-                  {girl.entryCount} entries
-                </div>
+              <div className="text-cpn-gray text-xs mb-4">
+                {girl.entryCount} entries
               </div>
 
               <div className="flex gap-2 items-center">
