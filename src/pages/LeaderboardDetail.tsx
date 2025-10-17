@@ -294,7 +294,7 @@ export function LeaderboardDetail({ groupId, onBack }: LeaderboardDetailProps) {
                     )}
                   </button>
                   <p className="text-xs text-cpn-gray mt-2">
-                    Share this link with friends to invite them to your group
+                    Copy the invite link and send it to your friends on any platform (WhatsApp, Instagram, Text, Email etc.). They'll be invited to create a CPN account and join your group.
                   </p>
                 </div>
               )}
