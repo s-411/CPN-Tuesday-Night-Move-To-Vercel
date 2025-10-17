@@ -130,6 +130,8 @@ function AppContent() {
       const hash = window.location.hash.substring(1);
       if (hash === 'sharing-center' || hash === 'sharecenter') {
         setActiveView('sharecenter');
+      } else if (hash === 'settings') {
+        setActiveView('settings');
       }
     };
 
