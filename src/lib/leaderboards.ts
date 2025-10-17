@@ -94,24 +94,56 @@ export async function createGroup(name: string, userId: string) {
     // Explicitly add creator as member (defense in depth - works with or without trigger)
     // ON CONFLICT in database constraint prevents duplicates if trigger also runs
     try {
-      const { data: userData } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('display_name, email')
         .eq('id', userId)
         .single();
 
+      if (userError) {
+        console.error('Failed to fetch user data for creator:', {
+          code: userError.code,
+          message: userError.message,
+          details: userError.details,
+          hint: userError.hint,
+          userId
+        });
+      }
+
       const displayUsername = userData?.display_name || userData?.email?.split('@')[0] || 'User';
 
-      await supabase
+      console.log('Attempting to add creator as member:', {
+        groupId: data.id,
+        userId,
+        displayUsername
+      });
+
+      const { data: memberData, error: memberError } = await supabase
         .from('leaderboard_members')
         .insert({
           group_id: data.id,
           user_id: userId,
           display_username: displayUsername,
+        })
+        .select()
+        .single();
+
+      if (memberError) {
+        // Log full error details to understand what's failing
+        console.error('Creator auto-join failed:', {
+          code: memberError.code,
+          message: memberError.message,
+          details: memberError.details,
+          hint: memberError.hint,
+          groupId: data.id,
+          userId,
+          displayUsername
         });
-    } catch (memberError) {
-      // Ignore conflicts - trigger may have already added creator
-      console.log('Creator auto-join handled (trigger or conflict):', memberError);
+      } else {
+        console.log('Creator successfully added:', memberData);
+      }
+    } catch (error) {
+      console.error('Creator auto-join exception:', error);
     }
 
     return { data, error: null };

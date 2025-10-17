@@ -970,6 +970,7 @@ function SettingsView({ user, profile, girls, onSignOut, onActivatePlayerMode, u
 
       // Reload page to immediately reflect changes everywhere
       setTimeout(() => {
+        window.location.hash = 'settings';
         window.location.reload();
       }, 500); // Short delay to show success message
     } catch (error) {
