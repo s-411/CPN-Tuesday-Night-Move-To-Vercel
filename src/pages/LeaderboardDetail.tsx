@@ -311,7 +311,9 @@ export function LeaderboardDetail({ groupId, onBack }: LeaderboardDetailProps) {
               <div className="text-center py-8">
                 <Trophy className="w-12 h-12 text-cpn-gray mx-auto mb-4" />
                 <p className="text-cpn-gray">No members yet</p>
-                <p className="text-cpn-gray text-sm">Invite friends to start competing</p>
+                <p className="text-cpn-gray text-sm">
+                  Copy the invite link and send it to them on any platform (WhatsApp, Instagram, Text, Email etc.). They'll be invited to create an account and join your group.
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
