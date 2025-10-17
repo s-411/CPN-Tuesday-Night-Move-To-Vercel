@@ -1,7 +1,7 @@
 # CPN v2 - Cost Per Nut Calculator
 
 > A comprehensive relationship metrics tracking application with Supabase backend and mobile-first PWA design.
-
+Skipping data valut
 ## Overview
 
 CPN (Cost Per Nut) v2 is a greenfield Supabase-native application that helps users track and analyze relationship efficiency metrics. Built with React, TypeScript, and Tailwind CSS, it provides real-time calculations, multi-profile management, and powerful analytics.
