@@ -1045,16 +1045,7 @@ function SettingsView({ user, profile, girls, onSignOut, onActivatePlayerMode, u
                   </div>
                 )}
               </div>
-              <div>
-                <label className="block text-sm text-cpn-gray mb-2">Account Created</label>
-                <input
-                  type="text"
-                  className="input-cpn w-full"
-                  value={profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : ''}
-                  disabled
-                />
-              </div>
-              <div>
+              <div className="mt-8">
                 <label className="block text-sm text-cpn-gray mb-2">
                   Display Name {profile?.display_name && <span className="text-cpn-white">(Current: {profile.display_name})</span>}
                 </label>
