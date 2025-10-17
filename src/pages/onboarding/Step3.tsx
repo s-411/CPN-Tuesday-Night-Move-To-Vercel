@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react';
 import { goTo } from '../../lib/navigation';
-import { getStep1, getStep2, setStep3, setState } from '../../lib/onboarding/session';
+import { getStep1, getStep2, setState } from '../../lib/onboarding/session';
 import { useAuth } from '../../contexts/AuthContext';
 import { commitOnboardingToSupabase } from '../../lib/onboarding/commit';
 import { OnboardingLayout } from '../../components/OnboardingLayout';
-import { validateSingleWordName } from '../../lib/validation/nameValidation';
 
 export function Step3() {
   const { signUp } = useAuth();
-  const [name, setName] = useState('');
-  const [nameError, setNameError] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,11 +29,6 @@ export function Step3() {
   const handleSubmit = async () => {
     setError('');
 
-    const nameValidation = validateSingleWordName(name);
-    if (!nameValidation.valid) {
-      setError(nameValidation.error || 'Please enter your name');
-      return;
-    }
     if (!email || !password) {
       setError('Please enter email and password');
       return;
@@ -45,16 +37,11 @@ export function Step3() {
       setError('Password must be at least 6 characters');
       return;
     }
-    
+
     setLoading(true);
     try {
-      // Save name to session storage
-      setStep3({ name, v: 1 });
-
       // Create account
-      const { error: signUpError } = await signUp(email, password, {
-        data: { full_name: name }
-      });
+      const { error: signUpError } = await signUp(email, password);
 
       if (signUpError) {
         throw signUpError;
@@ -111,27 +98,6 @@ export function Step3() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm text-cpn-gray mb-2">
-                First Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                className="input-cpn w-full"
-                placeholder="Your first name"
-                value={name}
-                onChange={(e) => {
-                  const newName = e.target.value;
-                  const validation = validateSingleWordName(newName);
-                  setNameError(validation.error || '');
-                  setName(newName);
-                }}
-                disabled={loading || success}
-              />
-              {nameError && (
-                <p className="text-red-400 text-xs mt-1">{nameError}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm text-cpn-gray mb-2">
                 Email <span className="text-red-500">*</span>
               </label>
               <input
@@ -164,7 +130,7 @@ export function Step3() {
             <button
               className="btn-cpn w-full"
               onClick={handleSubmit}
-              disabled={loading || success || !!nameError}
+              disabled={loading || success}
             >
               {loading ? 'Creating Account...' : success ? 'Redirecting...' : 'See Your CPN'}
             </button>

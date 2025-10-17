@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trophy, LinkIcon, Users, Eye, Loader2 } from 'lucide-react';
+import { Plus, Trophy, LinkIcon, Users, Eye, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { createGroup, getUserGroups, LeaderboardGroup } from '../lib/leaderboards';
 
@@ -9,7 +9,7 @@ interface LeaderboardsProps {
 }
 
 export function Leaderboards({ onNavigateToGroup, refreshTrigger }: LeaderboardsProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [groups, setGroups] = useState<LeaderboardGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -91,12 +91,41 @@ export function Leaderboards({ onNavigateToGroup, refreshTrigger }: Leaderboards
         <button
           onClick={() => setIsCreating(true)}
           className="btn-cpn flex items-center gap-2"
-          disabled={loading}
+          disabled={loading || !profile?.display_name}
+          title={!profile?.display_name ? 'Set your display name in Settings first' : ''}
         >
           <Plus className="w-5 h-5" />
           Create Group
         </button>
       </div>
+
+      {/* Display Name Required Banner */}
+      {!profile?.display_name && (
+        <div className="mb-6 card-cpn bg-gradient-to-r from-cpn-yellow/10 to-cpn-yellow/5 border-cpn-yellow/30 animate-fade-in">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-cpn-yellow flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-cpn-yellow font-bold mb-1">Display Name Required</h3>
+              <p className="text-cpn-gray text-sm mb-3">
+                You need to set a display name before creating or joining leaderboard groups.
+                This name will be shown on leaderboards and can be different from your account email.
+              </p>
+              <a
+                href="#settings"
+                onClick={(e) => {
+                  e.preventDefault();
+                  // This assumes there's a way to navigate to settings from the parent
+                  // The parent App.tsx will handle the actual navigation
+                  window.dispatchEvent(new CustomEvent('navigate-to-settings'));
+                }}
+                className="inline-block text-sm text-cpn-yellow hover:text-cpn-white font-medium underline"
+              >
+                Go to Settings to set your display name →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-20">

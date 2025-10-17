@@ -138,6 +138,15 @@ function AppContent() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  useEffect(() => {
+    const handleNavigateToSettings = () => {
+      setActiveView('settings');
+    };
+
+    window.addEventListener('navigate-to-settings', handleNavigateToSettings);
+    return () => window.removeEventListener('navigate-to-settings', handleNavigateToSettings);
+  }, []);
+
   // Redirect unauthenticated users from /signup to onboarding /step-1
   useEffect(() => {
     if (!user && pathname === '/signup') {
@@ -848,6 +857,9 @@ function SettingsView({ user, profile, girls, onSignOut, onActivatePlayerMode, u
   const [newEmail, setNewEmail] = useState('');
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [emailUpdateMessage, setEmailUpdateMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [displayName, setDisplayName] = useState('');
+  const [isUpdatingDisplayName, setIsUpdatingDisplayName] = useState(false);
+  const [displayNameMessage, setDisplayNameMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const handleManageSubscription = async () => {
     try {
@@ -926,6 +938,46 @@ function SettingsView({ user, profile, girls, onSignOut, onActivatePlayerMode, u
     }
   };
 
+  const handleUpdateDisplayName = async () => {
+    if (!displayName || displayName.trim() === '') {
+      setDisplayNameMessage({ type: 'error', text: 'Please enter a display name' });
+      return;
+    }
+
+    if (displayName.trim().length < 2) {
+      setDisplayNameMessage({ type: 'error', text: 'Display name must be at least 2 characters' });
+      return;
+    }
+
+    if (displayName.trim().length > 50) {
+      setDisplayNameMessage({ type: 'error', text: 'Display name must be 50 characters or less' });
+      return;
+    }
+
+    try {
+      setIsUpdatingDisplayName(true);
+      setDisplayNameMessage(null);
+
+      const { error } = await supabase
+        .from('users')
+        .update({ display_name: displayName.trim() })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setDisplayNameMessage({ type: 'success', text: 'Display name updated successfully!' });
+      setDisplayName('');
+    } catch (error) {
+      console.error('Error updating display name:', error);
+      setDisplayNameMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to update display name'
+      });
+    } finally {
+      setIsUpdatingDisplayName(false);
+    }
+  };
+
   const getSubscriptionDisplay = () => {
     const tier = profile?.subscription_tier || 'boyfriend';
     if (tier === 'boyfriend') {
@@ -1001,6 +1053,39 @@ function SettingsView({ user, profile, girls, onSignOut, onActivatePlayerMode, u
                   value={profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : ''}
                   disabled
                 />
+              </div>
+              <div>
+                <label className="block text-sm text-cpn-gray mb-2">
+                  Display Name {profile?.display_name && <span className="text-cpn-white">(Current: {profile.display_name})</span>}
+                </label>
+                <input
+                  type="text"
+                  className="input-cpn w-full"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Enter your display name"
+                  disabled={isUpdatingDisplayName}
+                  maxLength={50}
+                />
+                <button
+                  className="btn-cpn mt-2"
+                  onClick={handleUpdateDisplayName}
+                  disabled={isUpdatingDisplayName || !displayName}
+                >
+                  {isUpdatingDisplayName ? 'Updating...' : profile?.display_name ? 'Update Display Name' : 'Set Display Name'}
+                </button>
+                {displayNameMessage && (
+                  <div className={`mt-2 p-2 rounded text-sm ${
+                    displayNameMessage.type === 'success'
+                      ? 'bg-green-500/10 text-green-400'
+                      : 'bg-red-500/10 text-red-400'
+                  }`}>
+                    {displayNameMessage.text}
+                  </div>
+                )}
+                <p className="text-xs text-cpn-gray mt-2">
+                  Your display name is used in leaderboards and other social features
+                </p>
               </div>
             </div>
           </div>

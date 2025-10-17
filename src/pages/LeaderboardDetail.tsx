@@ -321,7 +321,7 @@ export function LeaderboardDetail({ groupId, onBack }: LeaderboardDetailProps) {
                   <thead>
                     <tr>
                       <th className="w-16">Rank</th>
-                      <th>Username</th>
+                      <th>Display Name</th>
                       <th className="text-right">Cost/Nut</th>
                       <th className="text-right">Total Spent</th>
                       <th className="text-right">Total Nuts</th>
