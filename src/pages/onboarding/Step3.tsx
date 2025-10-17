@@ -164,7 +164,7 @@ export function Step3() {
             <button
               className="btn-cpn w-full"
               onClick={handleSubmit}
-              disabled={loading || success}
+              disabled={loading || success || !!nameError}
             >
               {loading ? 'Creating Account...' : success ? 'Redirecting...' : 'See Your CPN'}
             </button>

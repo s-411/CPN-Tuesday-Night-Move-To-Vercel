@@ -66,6 +66,12 @@ export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModa
     e.preventDefault();
     setError('');
 
+    // Block submission if name validation fails
+    if (nameError) {
+      setError('Enter first name only');
+      return;
+    }
+
     const ageNum = parseInt(age);
     if (ageNum < 18) {
       setError('Age must be 18 or older');
@@ -268,7 +274,7 @@ export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModa
           <button type="button" onClick={onClose} className="btn-secondary flex-1" disabled={loading}>
             Cancel
           </button>
-          <button type="submit" className="btn-cpn flex-1" disabled={loading}>
+          <button type="submit" className="btn-cpn flex-1" disabled={loading || !!nameError}>
             {loading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>

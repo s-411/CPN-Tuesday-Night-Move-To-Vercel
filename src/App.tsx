@@ -462,6 +462,7 @@ function AppContent() {
                 canAddGirl={canAddGirl}
                 subscriptionTier={profile?.subscription_tier || 'free'}
                 onActivatePlayerMode={() => setShowUpgradeModal(true)}
+                onRefresh={loadGirls}
               />
             )}
             {activeView === 'overview' && (
@@ -657,9 +658,10 @@ interface GirlsViewProps {
   canAddGirl: boolean;
   subscriptionTier: string;
   onActivatePlayerMode: () => void;
+  onRefresh: () => void;
 }
 
-function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail, canAddGirl, subscriptionTier, onActivatePlayerMode }: GirlsViewProps) {
+function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail, canAddGirl, subscriptionTier, onActivatePlayerMode, onRefresh }: GirlsViewProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -717,6 +719,7 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
                           .update({ is_active: !girl.is_active })
                           .eq('id', girl.id);
                         if (error) throw error;
+                        await onRefresh();
                       } catch (error) {
                         console.error('Error toggling active status:', error);
                       }

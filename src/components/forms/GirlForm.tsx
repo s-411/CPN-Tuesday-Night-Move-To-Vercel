@@ -31,12 +31,18 @@ export function GirlForm({
 }) {
   const [nameError, setNameError] = useState('');
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Block submission if validation error exists
+    if (nameError) {
+      return;
+    }
+    onSubmit();
+  };
+
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit();
-      }}
+      onSubmit={handleFormSubmit}
       className="space-y-6"
     >
       {error && (
@@ -102,7 +108,7 @@ export function GirlForm({
             {secondaryAction.label}
           </button>
         )}
-        <button type="submit" className="btn-cpn flex-1" disabled={!!loading}>
+        <button type="submit" className="btn-cpn flex-1" disabled={!!loading || !!nameError}>
           {loading ? 'Submitting...' : submitLabel}
         </button>
       </div>
