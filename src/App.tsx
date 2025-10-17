@@ -728,7 +728,7 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {girls.map((girl) => (
             <div key={girl.id} className="card-cpn">
               <div className="flex items-start justify-between mb-4">
@@ -765,22 +765,22 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
                 </button>
               </div>
 
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-cpn-gray">Total Spent</span>
-                  <span className="font-bold">{formatCurrency(girl.totalSpent)}</span>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className="text-cpn-gray text-sm mb-1">Total Spent</p>
+                  <p className="font-bold text-xl">{formatCurrency(girl.totalSpent)}</p>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-cpn-gray">Total Nuts</span>
-                  <span className="font-bold">{girl.totalNuts}</span>
+                <div>
+                  <p className="text-cpn-gray text-sm mb-1">Total Nuts</p>
+                  <p className="font-bold text-xl">{girl.totalNuts}</p>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-cpn-gray">Cost/Nut</span>
-                  <span className="font-bold text-cpn-yellow">{formatCurrency(girl.costPerNut)}</span>
+                <div>
+                  <p className="text-cpn-gray text-sm mb-1">Cost/Nut</p>
+                  <p className="font-bold text-xl text-cpn-yellow">{formatCurrency(girl.costPerNut)}</p>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-cpn-gray">Total Time</span>
-                  <span className="font-bold">{formatTime(girl.totalTime)}</span>
+                <div>
+                  <p className="text-cpn-gray text-sm mb-1">Total Time</p>
+                  <p className="font-bold text-xl">{formatTime(girl.totalTime)}</p>
                 </div>
               </div>
 
