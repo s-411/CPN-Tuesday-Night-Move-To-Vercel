@@ -160,7 +160,7 @@ export default function GroupDashboardPage({ params }: GroupDashboardPageProps) 
                       </>
                     )}
                   </button>
-                  <p className="text-xs text-cpn-gray mt-2">
+                  <p className="text-sm text-cpn-gray text-center mt-2">
                     Copy the invite link and send it to your friends on any platform (WhatsApp, Instagram, Text, Email etc.). They'll be invited to create a CPN account and join your group.
                   </p>
                 </div>
