@@ -54,7 +54,7 @@ interface GirlWithMetrics extends Girl {
 }
 
 function AppContent() {
-  const { user, profile, loading: authLoading, signOut, showPaywall, setShowPaywall, updateEmail } = useAuth();
+  const { user, profile, loading: authLoading, signOut, showPaywall, setShowPaywall, updateEmail, refreshProfile } = useAuth();
   const [authView, setAuthView] = useState<'signin' | 'signup' | 'resetpassword' | 'passwordupdate'>('signin');
   const [activeView, setActiveView] = useState<'dashboard' | 'girls' | 'overview' | 'analytics' | 'dataentry' | 'datavault' | 'leaderboards' | 'share' | 'sharecenter' | 'settings' | 'mobilemenu'>('dashboard');
   const [showAddGirlModal, setShowAddGirlModal] = useState(false);
@@ -552,7 +552,7 @@ function AppContent() {
               </>
             )}
             {activeView === 'sharecenter' && <ShareCenter />}
-            {activeView === 'settings' && <SettingsView user={user} profile={profile} girls={girls} onSignOut={signOut} onActivatePlayerMode={() => setShowUpgradeModal(true)} updateEmail={updateEmail} />}
+            {activeView === 'settings' && <SettingsView user={user} profile={profile} girls={girls} onSignOut={signOut} onActivatePlayerMode={() => setShowUpgradeModal(true)} updateEmail={updateEmail} refreshProfile={refreshProfile} />}
             {activeView === 'mobilemenu' && (
               <MobileMenu
                 activeView={activeView}
@@ -852,7 +852,7 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
   );
 }
 
-function SettingsView({ user, profile, girls, onSignOut, onActivatePlayerMode, updateEmail }: { user: any; profile: any; girls: any[]; onSignOut: () => void; onActivatePlayerMode: () => void; updateEmail: (newEmail: string) => Promise<{ error: any | null }> }) {
+function SettingsView({ user, profile, girls, onSignOut, onActivatePlayerMode, updateEmail, refreshProfile }: { user: any; profile: any; girls: any[]; onSignOut: () => void; onActivatePlayerMode: () => void; updateEmail: (newEmail: string) => Promise<{ error: any | null }>; refreshProfile: () => Promise<void> }) {
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
@@ -967,6 +967,9 @@ function SettingsView({ user, profile, girls, onSignOut, onActivatePlayerMode, u
 
       setDisplayNameMessage({ type: 'success', text: 'Display name updated successfully!' });
       setDisplayName('');
+
+      // Manually refresh profile to immediately update UI everywhere
+      await refreshProfile();
     } catch (error) {
       console.error('Error updating display name:', error);
       setDisplayNameMessage({

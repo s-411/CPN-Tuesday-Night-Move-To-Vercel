@@ -57,7 +57,8 @@ export function Leaderboards({ onNavigateToGroup, refreshTrigger }: Leaderboards
     }
 
     try {
-      const { data, error } = await createGroup(groupName.trim(), user.id, profile.display_name);
+      // Database trigger will auto-add creator as member using their display_name
+      const { data, error } = await createGroup(groupName.trim(), user.id);
       if (error) throw new Error(error);
 
       setGroupName('');

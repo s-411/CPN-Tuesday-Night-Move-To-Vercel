@@ -67,22 +67,17 @@ export interface InviteValidation {
 // =====================================================
 
 /**
- * Create a new leaderboard group and automatically add creator as first member
+ * Create a new leaderboard group
+ * Database trigger automatically adds creator as first member
  * @param name - Group name (3-100 characters)
  * @param userId - ID of the user creating the group
- * @param creatorDisplayName - Display name for the creator in this group
  * @returns The created group or error
  */
-export async function createGroup(name: string, userId: string, creatorDisplayName: string) {
+export async function createGroup(name: string, userId: string) {
   try {
     // Validate name length
     if (name.length < 3 || name.length > 100) {
       return { data: null, error: 'Group name must be between 3 and 100 characters' };
-    }
-
-    // Validate display name
-    if (!creatorDisplayName || creatorDisplayName.trim().length < 2) {
-      return { data: null, error: 'Display name is required to create a group' };
     }
 
     const { data, error } = await supabase
@@ -96,19 +91,8 @@ export async function createGroup(name: string, userId: string, creatorDisplayNa
 
     if (error) throw error;
 
-    // Auto-add creator as first member
-    const { error: memberError } = await supabase
-      .from('leaderboard_members')
-      .insert({
-        group_id: data.id,
-        user_id: userId,
-        display_username: creatorDisplayName.trim(),
-      });
-
-    if (memberError) {
-      console.error('Warning: Failed to auto-add creator to group:', memberError);
-      // Don't fail the entire operation - group was created successfully
-    }
+    // Note: Database trigger 'add_creator_as_member()' automatically adds the creator
+    // as the first member with their display_name or email username as fallback
 
     return { data, error: null };
   } catch (error: any) {
