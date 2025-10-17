@@ -91,8 +91,28 @@ export async function createGroup(name: string, userId: string) {
 
     if (error) throw error;
 
-    // Note: Database trigger 'add_creator_as_member()' automatically adds the creator
-    // as the first member with their display_name or email username as fallback
+    // Explicitly add creator as member (defense in depth - works with or without trigger)
+    // ON CONFLICT in database constraint prevents duplicates if trigger also runs
+    try {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('display_name, email')
+        .eq('id', userId)
+        .single();
+
+      const displayUsername = userData?.display_name || userData?.email?.split('@')[0] || 'User';
+
+      await supabase
+        .from('leaderboard_members')
+        .insert({
+          group_id: data.id,
+          user_id: userId,
+          display_username: displayUsername,
+        });
+    } catch (memberError) {
+      // Ignore conflicts - trigger may have already added creator
+      console.log('Creator auto-join handled (trigger or conflict):', memberError);
+    }
 
     return { data, error: null };
   } catch (error: any) {

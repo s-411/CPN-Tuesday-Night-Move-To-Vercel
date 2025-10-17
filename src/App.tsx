@@ -968,8 +968,10 @@ function SettingsView({ user, profile, girls, onSignOut, onActivatePlayerMode, u
       setDisplayNameMessage({ type: 'success', text: 'Display name updated successfully!' });
       setDisplayName('');
 
-      // Manually refresh profile to immediately update UI everywhere
-      await refreshProfile();
+      // Reload page to immediately reflect changes everywhere
+      setTimeout(() => {
+        window.location.reload();
+      }, 500); // Short delay to show success message
     } catch (error) {
       console.error('Error updating display name:', error);
       setDisplayNameMessage({
