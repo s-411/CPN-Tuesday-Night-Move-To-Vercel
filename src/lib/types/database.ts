@@ -25,6 +25,8 @@ export interface Database {
           subscription_end_date: string | null
           has_seen_paywall: boolean
           onboarding_completed_at: string | null
+          can_export_data: boolean
+          kit_subscriber_id: string | null
           created_at: string
           updated_at: string
           last_login_at: string
@@ -44,6 +46,8 @@ export interface Database {
           subscription_end_date?: string | null
           has_seen_paywall?: boolean
           onboarding_completed_at?: string | null
+          can_export_data?: boolean
+          kit_subscriber_id?: string | null
           created_at?: string
           updated_at?: string
           last_login_at?: string
@@ -63,6 +67,8 @@ export interface Database {
           subscription_end_date?: string | null
           has_seen_paywall?: boolean
           onboarding_completed_at?: string | null
+          can_export_data?: boolean
+          kit_subscriber_id?: string | null
           created_at?: string
           updated_at?: string
           last_login_at?: string
@@ -179,12 +185,80 @@ export interface Database {
           updated_at?: string
         }
       }
+      leaderboard_groups: {
+        Row: {
+          id: string
+          name: string
+          created_by: string
+          invite_token: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          created_by: string
+          invite_token?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          created_by?: string
+          invite_token?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      leaderboard_members: {
+        Row: {
+          id: string
+          group_id: string
+          user_id: string
+          display_username: string
+          joined_at: string
+        }
+        Insert: {
+          id?: string
+          group_id: string
+          user_id: string
+          display_username: string
+          joined_at?: string
+        }
+        Update: {
+          id?: string
+          group_id?: string
+          user_id?: string
+          display_username?: string
+          joined_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      validate_invite_token: {
+        Args: { token: string }
+        Returns: {
+          group_id: string
+          group_name: string
+          creator_email: string
+          member_count: number
+        }[]
+      }
+      get_user_leaderboard_stats: {
+        Args: { user_uuid: string }
+        Returns: {
+          total_spent: number
+          total_nuts: number
+          cost_per_nut: number
+          total_time_minutes: number
+          total_girls: number
+          efficiency_score: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

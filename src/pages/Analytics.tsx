@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { BarChart3, Trophy } from 'lucide-react';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter } from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter } from 'recharts';
 import { formatCurrency } from '../lib/calculations';
 
 interface Girl {
@@ -18,7 +18,7 @@ interface AnalyticsProps {
   girls: Girl[];
 }
 
-type TimeRange = '7d' | '30d' | '90d' | 'all';
+type Category = 'all' | 'spending' | 'time' | 'cost-efficiency';
 
 const GIRL_COLORS: Record<string, string> = {
   'Sarah': '#4A90E2',
@@ -28,11 +28,29 @@ const GIRL_COLORS: Record<string, string> = {
 };
 
 const getGirlColor = (name: string, index: number): string => {
-  return GIRL_COLORS[name] || ['#f2f661', '#60a5fa', '#4ade80', '#f87171', '#c084fc', '#fb923c'][index % 6];
+  // Pastel colors for first 7 girls, then vibrant variations for 8-15
+  const defaultColors = [
+    '#fda4af', // 1. Pink (pastel rose)
+    '#60a5fa', // 2. Blue (pastel)
+    '#4ade80', // 3. Green (pastel)
+    '#fb923c', // 4. Orange
+    '#f87171', // 5. Red (pastel coral)
+    '#fde047', // 6. Yellow (lighter, less harsh)
+    '#c084fc', // 7. Purple (pastel)
+    '#2dd4bf', // 8. Teal (vibrant)
+    '#818cf8', // 9. Indigo (vibrant)
+    '#10b981', // 10. Emerald (vibrant)
+    '#fbbf24', // 11. Amber (vibrant)
+    '#e879f9', // 12. Fuchsia (vibrant)
+    '#22d3ee', // 13. Cyan (vibrant)
+    '#84cc16', // 14. Lime (vibrant)
+    '#38bdf8', // 15. Sky (vibrant)
+  ];
+  return GIRL_COLORS[name] || defaultColors[index % defaultColors.length];
 };
 
 export function Analytics({ girls }: AnalyticsProps) {
-  const [timeRange, setTimeRange] = useState<TimeRange>('30d');
+  const [category, setCategory] = useState<Category>('all');
 
   const spendingData = useMemo(() => {
     return girls
@@ -48,29 +66,6 @@ export function Analytics({ girls }: AnalyticsProps) {
       .sort((a, b) => b.spent - a.spent);
   }, [girls]);
 
-  const efficiencyData = useMemo(() => {
-    return girls
-      .filter((g) => g.entryCount > 0)
-      .map((girl) => ({
-        name: girl.name,
-        costPerNut: girl.costPerNut,
-        entries: girl.entryCount,
-      }))
-      .sort((a, b) => a.costPerNut - b.costPerNut);
-  }, [girls]);
-
-  const distributionData = useMemo(() => {
-    const totalSpent = girls.reduce((sum, g) => sum + g.totalSpent, 0);
-    return girls
-      .filter((g) => g.totalSpent > 0)
-      .map((girl, index) => ({
-        name: girl.name,
-        value: girl.totalSpent,
-        percent: totalSpent > 0 ? ((girl.totalSpent / totalSpent) * 100).toFixed(1) : '0.0',
-        fill: getGirlColor(girl.name, index),
-      }))
-      .sort((a, b) => b.value - a.value);
-  }, [girls]);
 
   const scatterData = useMemo(() => {
     return girls
@@ -83,25 +78,123 @@ export function Analytics({ girls }: AnalyticsProps) {
       }));
   }, [girls]);
 
-  const monthlyTrendData = useMemo(() => {
-    return [];
-  }, []);
 
-  const costEfficiencyTrendData = useMemo(() => {
-    return [];
-  }, []);
-
-  const roiData = useMemo(() => {
+  // Data for Total Nuts Per Girl (SPENDING category)
+  const nutsPerGirlData = useMemo(() => {
     return girls
       .filter((g) => g.entryCount > 0)
-      .map((girl) => ({
+      .map((girl, index) => ({
         name: girl.name,
-        costPerNut: girl.costPerNut,
-        nutsPerDollar: girl.totalSpent > 0 ? (girl.totalNuts / girl.totalSpent).toFixed(2) : 0,
-        totalNuts: girl.totalNuts,
+        nuts: girl.totalNuts,
+        fill: getGirlColor(girl.name, index),
       }))
-      .sort((a, b) => a.costPerNut - b.costPerNut)
-      .slice(0, 10);
+      .sort((a, b) => b.nuts - a.nuts);
+  }, [girls]);
+
+  // Data for Time Distribution Per Girl (TIME category)
+  const timeDistributionData = useMemo(() => {
+    const totalTime = girls.reduce((sum, g) => sum + g.totalTime, 0);
+    return girls
+      .filter((g) => g.totalTime > 0)
+      .map((girl, index) => ({
+        name: girl.name,
+        value: girl.totalTime / 60, // in hours
+        percent: totalTime > 0 ? ((girl.totalTime / totalTime) * 100).toFixed(1) : '0.0',
+        fill: getGirlColor(girl.name, index),
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [girls]);
+
+  // Data for Average Time Per Nut Comparison (TIME category)
+  const avgTimePerNutData = useMemo(() => {
+    return girls
+      .filter((g) => g.entryCount > 0 && g.totalNuts > 0)
+      .map((girl, index) => ({
+        name: girl.name,
+        avgTimePerNut: girl.totalTime / girl.totalNuts, // in minutes
+        fill: getGirlColor(girl.name, index),
+      }))
+      .sort((a, b) => a.avgTimePerNut - b.avgTimePerNut);
+  }, [girls]);
+
+  // Data for Average Cost Per Hour (COST EFFICIENCY category)
+  const avgCostPerHourData = useMemo(() => {
+    return girls
+      .filter((g) => g.entryCount > 0 && g.totalTime > 0)
+      .map((girl, index) => ({
+        name: girl.name,
+        costPerHour: (girl.totalSpent / (girl.totalTime / 60)), // dollars per hour
+        fill: getGirlColor(girl.name, index),
+      }))
+      .sort((a, b) => a.costPerHour - b.costPerHour);
+  }, [girls]);
+
+  // Data for Cost Per Hour Distribution (COST EFFICIENCY category)
+  const costPerHourDistributionData = useMemo(() => {
+    const girlsWithTime = girls.filter((g) => g.totalTime > 0);
+    const totalCostPerHour = girlsWithTime.reduce((sum, g) => sum + (g.totalSpent / (g.totalTime / 60)), 0);
+
+    return girlsWithTime
+      .map((girl, index) => {
+        const costPerHour = girl.totalSpent / (girl.totalTime / 60);
+        return {
+          name: girl.name,
+          value: costPerHour,
+          percent: totalCostPerHour > 0 ? ((costPerHour / totalCostPerHour) * 100).toFixed(1) : '0.0',
+          fill: getGirlColor(girl.name, index),
+        };
+      })
+      .sort((a, b) => b.value - a.value);
+  }, [girls]);
+
+  // Calculate metrics (must be before early returns per React hooks rules)
+  const totalSpent = useMemo(() => girls.reduce((sum, g) => sum + g.totalSpent, 0), [girls]);
+  const totalNuts = useMemo(() => girls.reduce((sum, g) => sum + g.totalNuts, 0), [girls]);
+  const totalTime = useMemo(() => girls.reduce((sum, g) => sum + g.totalTime, 0), [girls]);
+  const activeProfiles = useMemo(() => girls.filter((g) => g.entryCount > 0).length, [girls]);
+  const avgCostPerNut = useMemo(() => (totalNuts > 0 ? totalSpent / totalNuts : 0), [totalSpent, totalNuts]);
+  const avgTimePerNut = useMemo(() => (totalNuts > 0 ? totalTime / totalNuts : 0), [totalTime, totalNuts]);
+
+  const bestCostPerNut = useMemo(() => {
+    const girlsWithData = girls.filter((g) => g.entryCount > 0 && g.costPerNut > 0);
+    if (girlsWithData.length === 0) return null;
+    return girlsWithData.reduce((best, g) => (g.costPerNut < best.costPerNut ? g : best));
+  }, [girls]);
+
+  const highestSpender = useMemo(() => {
+    const girlsWithData = girls.filter((g) => g.entryCount > 0);
+    if (girlsWithData.length === 0) return null;
+    return girlsWithData.reduce((highest, g) => (g.totalSpent > highest.totalSpent ? g : highest));
+  }, [girls]);
+
+  const mostTimeSpent = useMemo(() => {
+    const girlsWithData = girls.filter((g) => g.entryCount > 0);
+    if (girlsWithData.length === 0) return null;
+    return girlsWithData.reduce((most, g) => (g.totalTime > most.totalTime ? g : most));
+  }, [girls]);
+
+  const roiRankings = useMemo(() => {
+    const girlsWithData = girls.filter((g) => g.entryCount > 0 && g.costPerNut > 0);
+    if (girlsWithData.length === 0) return [];
+
+    return girlsWithData
+      .map((girl) => {
+        const nutsPerHour = girl.totalTime > 0 ? (girl.totalNuts / (girl.totalTime / 60)) : 0;
+        const efficiencyScore = (
+          (girl.rating / 10) * 30 +
+          (1 / girl.costPerNut) * 500 +
+          nutsPerHour * 10
+        );
+
+        return {
+          name: girl.name,
+          rating: girl.rating,
+          costPerNut: girl.costPerNut,
+          nutsPerHour,
+          efficiencyScore,
+        };
+      })
+      .sort((a, b) => b.efficiencyScore - a.efficiencyScore);
   }, [girls]);
 
   if (girls.length === 0) {
@@ -142,60 +235,11 @@ export function Analytics({ girls }: AnalyticsProps) {
     );
   }
 
-  const totalSpent = useMemo(() => girls.reduce((sum, g) => sum + g.totalSpent, 0), [girls]);
-  const totalNuts = useMemo(() => girls.reduce((sum, g) => sum + g.totalNuts, 0), [girls]);
-  const totalTime = useMemo(() => girls.reduce((sum, g) => sum + g.totalTime, 0), [girls]);
-  const activeProfiles = useMemo(() => girls.filter((g) => g.entryCount > 0).length, [girls]);
-  const avgCostPerNut = useMemo(() => (totalNuts > 0 ? totalSpent / totalNuts : 0), [totalSpent, totalNuts]);
-  const avgTimePerNut = useMemo(() => (totalNuts > 0 ? totalTime / totalNuts : 0), [totalTime, totalNuts]);
-
-  const bestCostPerNut = useMemo(() => {
-    const girlsWithData = girls.filter((g) => g.entryCount > 0 && g.costPerNut > 0);
-    if (girlsWithData.length === 0) return null;
-    return girlsWithData.reduce((best, g) => (g.costPerNut < best.costPerNut ? g : best));
-  }, [girls]);
-
-  const highestSpender = useMemo(() => {
-    const girlsWithData = girls.filter((g) => g.entryCount > 0);
-    if (girlsWithData.length === 0) return null;
-    return girlsWithData.reduce((highest, g) => (g.totalSpent > highest.totalSpent ? g : highest));
-  }, [girls]);
-
-  const mostTimeSpent = useMemo(() => {
-    const girlsWithData = girls.filter((g) => g.entryCount > 0);
-    if (girlsWithData.length === 0) return null;
-    return girlsWithData.reduce((most, g) => (g.totalTime > most.totalTime ? g : most));
-  }, [girls]);
-
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
   };
-
-  const roiRankings = useMemo(() => {
-    const girlsWithData = girls.filter((g) => g.entryCount > 0 && g.costPerNut > 0);
-    if (girlsWithData.length === 0) return [];
-
-    return girlsWithData
-      .map((girl) => {
-        const nutsPerHour = girl.totalTime > 0 ? (girl.totalNuts / (girl.totalTime / 60)) : 0;
-        const efficiencyScore = (
-          (girl.rating / 10) * 30 +
-          (1 / girl.costPerNut) * 500 +
-          nutsPerHour * 10
-        );
-
-        return {
-          name: girl.name,
-          rating: girl.rating,
-          costPerNut: girl.costPerNut,
-          nutsPerHour,
-          efficiencyScore,
-        };
-      })
-      .sort((a, b) => b.efficiencyScore - a.efficiencyScore);
-  }, [girls]);
 
   const getEfficiencyColor = (score: number) => {
     if (score >= 13) return 'text-green-500';
@@ -357,166 +401,304 @@ export function Analytics({ girls }: AnalyticsProps) {
         </div>
       )}
 
-      <div className="flex gap-2">
-        {(['7d', '30d', '90d', 'all'] as TimeRange[]).map((range) => (
-          <button
-            key={range}
-            className={timeRange === range ? 'btn-cpn' : 'btn-secondary'}
-            onClick={() => setTimeRange(range)}
-          >
-            {range === 'all' ? 'All Time' : range}
-          </button>
-        ))}
+      {/* Category Filter */}
+      <div className="card-cpn">
+        <h3 className="text-lg mb-4">Analytics Reports Categories</h3>
+        <div className="flex flex-wrap gap-2">
+          {(['all', 'spending', 'time', 'cost-efficiency'] as Category[]).map((cat) => (
+            <button
+              key={cat}
+              className={category === cat ? 'btn-cpn' : 'btn-secondary'}
+              onClick={() => setCategory(cat)}
+            >
+              {cat === 'all' ? 'All' : cat === 'cost-efficiency' ? 'Cost Efficiency' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Charts Section */}
       {spendingData.length > 0 && (
         <>
-          {/* Row 1: Bar Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Total Spent per Girl */}
-            <div className="card-cpn">
-              <h3 className="text-lg mb-4">Total Spent per Girl</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={spendingData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                  <XAxis dataKey="name" stroke="#ababab" />
-                  <YAxis stroke="#ababab" domain={[0, 600]} ticks={[0, 150, 300, 450, 600]} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
-                    itemStyle={{ color: '#ffffff' }}
-                    labelStyle={{ color: '#ffffff' }}
-                    formatter={(value: number) => formatCurrency(value)}
-                    cursor={false}
-                  />
-                  <Bar dataKey="spent" />
-                  {spendingData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+          {/* SPENDING CATEGORY */}
+          {(category === 'all' || category === 'spending') && (
+            <>
+              <div className="card-cpn bg-cpn-dark/30">
+                <h2 className="text-2xl font-bold mb-4 text-cpn-yellow">SPENDING</h2>
+              </div>
 
-            {/* Cost per Nut Comparison */}
-            <div className="card-cpn">
-              <h3 className="text-lg mb-4">Cost per Nut Comparison</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={spendingData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                  <XAxis dataKey="name" stroke="#ababab" />
-                  <YAxis stroke="#ababab" domain={[0, 120]} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
-                    itemStyle={{ color: '#ffffff' }}
-                    labelStyle={{ color: '#ffffff' }}
-                    formatter={(value: number) => formatCurrency(value)}
-                    cursor={false}
-                  />
-                  <Bar dataKey="costPerNut" />
-                  {spendingData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Total Money Spent Per Girl */}
+                <div className="card-cpn">
+                  <h3 className="text-lg mb-4">Total Money Spent Per Girl</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={spendingData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                      <XAxis dataKey="name" stroke="#ababab" />
+                      <YAxis stroke="#ababab" domain={[0, 600]} ticks={[0, 150, 300, 450, 600]} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
+                        itemStyle={{ color: '#ffffff' }}
+                        labelStyle={{ color: '#ffffff' }}
+                        formatter={(value: number) => formatCurrency(value)}
+                        cursor={false}
+                      />
+                      <Bar dataKey="spent" />
+                      {spendingData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
 
-          {/* Row 2: Bar Chart */}
-          <div className="grid grid-cols-1 gap-6">
-            {/* Time Spent per Girl */}
-            <div className="card-cpn">
-              <h3 className="text-lg mb-4">Time Spent per Girl</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={spendingData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                  <XAxis dataKey="name" stroke="#ababab" />
-                  <YAxis stroke="#ababab" domain={[0, 40]} label={{ value: 'Hours', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
-                    itemStyle={{ color: '#ffffff' }}
-                    labelStyle={{ color: '#ffffff' }}
-                    formatter={(value: number) => `${value.toFixed(1)}h`}
-                    cursor={false}
-                  />
-                  <Bar dataKey="time" />
-                  {spendingData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+                {/* Cost per Nut Comparison */}
+                <div className="card-cpn">
+                  <h3 className="text-lg mb-4">Cost per Nut Comparison</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={spendingData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                      <XAxis dataKey="name" stroke="#ababab" />
+                      <YAxis stroke="#ababab" domain={[0, 120]} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
+                        itemStyle={{ color: '#ffffff' }}
+                        labelStyle={{ color: '#ffffff' }}
+                        formatter={(value: number) => formatCurrency(value)}
+                        cursor={false}
+                      />
+                      <Bar dataKey="costPerNut" />
+                      {spendingData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
-          {/* Row 3: Pie Chart */}
-          <div className="grid grid-cols-1 gap-6">
-            {/* Spending Distribution */}
-            <div className="card-cpn">
-              <h3 className="text-lg mb-4">Spending Distribution</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={distributionData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name}: ${percent}%`}
-                    outerRadius={90}
-                    dataKey="value"
-                  >
-                    {distributionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
-                    itemStyle={{ color: '#ffffff' }}
-                    labelStyle={{ color: '#ffffff' }}
-                    formatter={(value: number) => formatCurrency(value)}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+              {/* Total Nuts Per Girl */}
+              {nutsPerGirlData.length > 0 && (
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="card-cpn">
+                    <h3 className="text-lg mb-4">Total Nuts Per Girl</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={nutsPerGirlData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                        <XAxis dataKey="name" stroke="#ababab" />
+                        <YAxis stroke="#ababab" />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
+                          itemStyle={{ color: '#ffffff' }}
+                          labelStyle={{ color: '#ffffff' }}
+                          cursor={false}
+                        />
+                        <Bar dataKey="nuts" />
+                        {nutsPerGirlData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
 
-          {/* Row 4: Scatter Plot */}
-          <div className="grid grid-cols-1 gap-6">
-            <div className="card-cpn">
-              <h3 className="text-lg mb-4">Efficiency vs Rating Analysis</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <ScatterChart>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                  <XAxis
-                    type="number"
-                    dataKey="rating"
-                    name="Rating"
-                    stroke="#ababab"
-                    domain={[0, 10]}
-                    label={{ value: 'Rating', position: 'insideBottom', offset: -5 }}
-                  />
-                  <YAxis
-                    type="number"
-                    dataKey="costPerNut"
-                    name="Cost per Nut"
-                    stroke="#ababab"
-                    domain={[0, 120]}
-                    label={{ value: 'Cost per Nut ($)', angle: -90, position: 'insideLeft' }}
-                  />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
-                    itemStyle={{ color: '#ffffff' }}
-                    labelStyle={{ color: '#ffffff' }}
-                    formatter={(value: number) => formatCurrency(value)}
-                    cursor={{ strokeDasharray: '3 3' }}
-                  />
-                  <Scatter data={scatterData} fill="#8884d8">
-                    {scatterData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Scatter>
-                </ScatterChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+          {/* TIME CATEGORY */}
+          {(category === 'all' || category === 'time') && (
+            <>
+              <div className="card-cpn bg-cpn-dark/30">
+                <h2 className="text-2xl font-bold mb-4 text-cpn-yellow">TIME</h2>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Total Time Per Girl */}
+                <div className="card-cpn">
+                  <h3 className="text-lg mb-4">Total Time Per Girl</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={spendingData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                      <XAxis dataKey="name" stroke="#ababab" />
+                      <YAxis stroke="#ababab" domain={[0, 40]} label={{ value: 'Hours', angle: -90, position: 'insideLeft' }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
+                        itemStyle={{ color: '#ffffff' }}
+                        labelStyle={{ color: '#ffffff' }}
+                        formatter={(value: number) => `${value.toFixed(1)}h`}
+                        cursor={false}
+                      />
+                      <Bar dataKey="time" />
+                      {spendingData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Average Time Per Nut Comparison */}
+                {avgTimePerNutData.length > 0 && (
+                  <div className="card-cpn">
+                    <h3 className="text-lg mb-4">Average Time Per Nut Comparison</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={avgTimePerNutData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                        <XAxis dataKey="name" stroke="#ababab" />
+                        <YAxis stroke="#ababab" label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
+                          itemStyle={{ color: '#ffffff' }}
+                          labelStyle={{ color: '#ffffff' }}
+                          formatter={(value: number) => `${Math.round(value)} mins`}
+                          cursor={false}
+                        />
+                        <Bar dataKey="avgTimePerNut" />
+                        {avgTimePerNutData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+
+              {/* Time Distribution Per Girl */}
+              {timeDistributionData.length > 0 && (
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="card-cpn">
+                    <h3 className="text-lg mb-4">Time Distribution Per Girl</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={timeDistributionData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name}: ${percent}%`}
+                          outerRadius={90}
+                          dataKey="value"
+                        >
+                          {timeDistributionData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
+                          itemStyle={{ color: '#ffffff' }}
+                          labelStyle={{ color: '#ffffff' }}
+                          formatter={(value: number) => `${value.toFixed(1)}h`}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* COST EFFICIENCY CATEGORY */}
+          {(category === 'all' || category === 'cost-efficiency') && (
+            <>
+              <div className="card-cpn bg-cpn-dark/30">
+                <h2 className="text-2xl font-bold mb-4 text-cpn-yellow">COST EFFICIENCY</h2>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Efficiency vs Rating Analysis */}
+                <div className="card-cpn">
+                  <h3 className="text-lg mb-4">Efficiency vs Rating Analysis</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <ScatterChart>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                      <XAxis
+                        type="number"
+                        dataKey="rating"
+                        name="Rating"
+                        stroke="#ababab"
+                        domain={[0, 10]}
+                        label={{ value: 'Rating', position: 'insideBottom', offset: -5 }}
+                      />
+                      <YAxis
+                        type="number"
+                        dataKey="costPerNut"
+                        name="Cost per Nut"
+                        stroke="#ababab"
+                        domain={[0, 120]}
+                        label={{ value: 'Cost per Nut ($)', angle: -90, position: 'insideLeft' }}
+                      />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
+                        itemStyle={{ color: '#ffffff' }}
+                        labelStyle={{ color: '#ffffff' }}
+                        formatter={(value: number) => formatCurrency(value)}
+                        cursor={{ strokeDasharray: '3 3' }}
+                      />
+                      <Scatter data={scatterData} fill="#8884d8">
+                        {scatterData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Scatter>
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Average Cost Per Hour Per Girl */}
+                {avgCostPerHourData.length > 0 && (
+                  <div className="card-cpn">
+                    <h3 className="text-lg mb-4">Average Cost Per Hour Per Girl</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={avgCostPerHourData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                        <XAxis dataKey="name" stroke="#ababab" />
+                        <YAxis stroke="#ababab" />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
+                          itemStyle={{ color: '#ffffff' }}
+                          labelStyle={{ color: '#ffffff' }}
+                          formatter={(value: number) => formatCurrency(value)}
+                          cursor={false}
+                        />
+                        <Bar dataKey="costPerHour" />
+                        {avgCostPerHourData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+
+              {/* Average Cost Per Hour Distribution */}
+              {costPerHourDistributionData.length > 0 && (
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="card-cpn">
+                    <h3 className="text-lg mb-4">Average Cost Per Hour Distribution</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={costPerHourDistributionData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name}: ${percent}%`}
+                          outerRadius={90}
+                          dataKey="value"
+                        >
+                          {costPerHourDistributionData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #ababab', color: '#ffffff' }}
+                          itemStyle={{ color: '#ffffff' }}
+                          labelStyle={{ color: '#ffffff' }}
+                          formatter={(value: number) => formatCurrency(value)}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </>
       )}
     </div>

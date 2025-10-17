@@ -76,16 +76,42 @@ export const generateShareImage = async (data: ShareData): Promise<Blob> => {
   ctx.lineWidth = 2;
   ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
 
+  // Load and draw the CPN favicon logo at the top center
+  let headerHeight = 40;
+  try {
+    const logo = await loadImage('/CPN fav.png');
+    const logoMaxWidth = 60;
+    const logoAspectRatio = logo.width / logo.height;
+    const logoWidth = logoMaxWidth;
+    const logoHeight = logoWidth / logoAspectRatio;
+    const logoX = (canvas.width - logoWidth) / 2;
+    const logoY = 40;
+    ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+    headerHeight = logoY + logoHeight + 20;
+  } catch (error) {
+    console.error('Failed to load logo:', error);
+  }
+
+  // Add "My CPN (Cost Per Nut)" title below logo
+  ctx.fillStyle = '#f2f661';
+  ctx.font = 'bold 36px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('My CPN (Cost Per Nut)', canvas.width / 2, headerHeight + 30);
+  headerHeight += 60;
+
+  // Reset text alignment for other content
+  ctx.textAlign = 'left';
+
   if (data.type === 'girl' && data.girlName) {
     ctx.fillStyle = '#f2f661';
-    ctx.font = 'bold 64px sans-serif';
-    ctx.fillText(data.girlName, 60, 100);
+    ctx.font = 'bold 48px sans-serif';
+    ctx.fillText(data.girlName, 60, headerHeight + 40);
 
     ctx.fillStyle = '#ababab';
-    ctx.font = '32px sans-serif';
-    ctx.fillText(`Rating: ${formatRating(data.rating || 0)}`, 60, 150);
+    ctx.font = '28px sans-serif';
+    ctx.fillText(`Rating: ${formatRating(data.rating || 0)}`, 60, headerHeight + 80);
 
-    let yPos = 220;
+    let yPos = headerHeight + 140;
     const metrics = [
       { label: 'Cost per Nut', value: formatCurrency(data.costPerNut || 0) },
       { label: 'Time per Nut', value: `${Math.round(data.timePerNut || 0)} min` },
@@ -106,19 +132,15 @@ export const generateShareImage = async (data: ShareData): Promise<Blob> => {
       const y = yPos + row * rowHeight;
 
       ctx.fillStyle = '#ababab';
-      ctx.font = '24px sans-serif';
+      ctx.font = '22px sans-serif';
       ctx.fillText(metric.label, xPos, y);
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px sans-serif';
+      ctx.font = 'bold 32px sans-serif';
       ctx.fillText(metric.value, xPos, y + 40);
     });
   } else if (data.type === 'overview' && data.overviewStats) {
-    ctx.fillStyle = '#f2f661';
-    ctx.font = 'bold 64px sans-serif';
-    ctx.fillText('My CPN Stats', 60, 100);
-
-    let yPos = 200;
+    let yPos = headerHeight + 40;
     const stats = [
       { label: 'Total Girls Tracked', value: `${data.overviewStats.totalGirls}` },
       { label: 'Total Spent', value: formatCurrency(data.overviewStats.totalSpent) },
@@ -126,49 +148,75 @@ export const generateShareImage = async (data: ShareData): Promise<Blob> => {
       { label: 'Avg Cost per Nut', value: formatCurrency(data.overviewStats.avgCostPerNut) },
     ];
 
+    // Use 2-column layout for better space utilization
+    const col1X = 60;
+    const col2X = 620;
+    const rowHeight = 90;
+
     stats.forEach((stat, index) => {
+      const xPos = index % 2 === 0 ? col1X : col2X;
+      const row = Math.floor(index / 2);
+      const y = yPos + row * rowHeight;
+
       ctx.fillStyle = '#ababab';
-      ctx.font = '28px sans-serif';
-      ctx.fillText(stat.label, 60, yPos);
+      ctx.font = '24px sans-serif';
+      ctx.fillText(stat.label, xPos, y);
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 48px sans-serif';
-      ctx.fillText(stat.value, 60, yPos + 50);
-
-      yPos += 110;
+      ctx.font = 'bold 42px sans-serif';
+      ctx.fillText(stat.value, xPos, y + 45);
     });
 
+    // Position "Best Value" below the stats grid
     if (data.overviewStats.bestValueGirl) {
+      const bestValueY = yPos + Math.ceil(stats.length / 2) * rowHeight + 20;
+
       ctx.fillStyle = '#f2f661';
-      ctx.font = '28px sans-serif';
-      ctx.fillText('Best Value:', 60, yPos);
+      ctx.font = '24px sans-serif';
+      ctx.fillText('Best Value:', col1X, bestValueY);
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px sans-serif';
-      ctx.fillText(data.overviewStats.bestValueGirl, 60, yPos + 40);
+      ctx.font = 'bold 32px sans-serif';
+      ctx.fillText(data.overviewStats.bestValueGirl, col1X, bestValueY + 40);
     }
   } else if (data.type === 'achievement') {
     ctx.fillStyle = '#f2f661';
     ctx.font = 'bold 72px sans-serif';
-    ctx.fillText('🏆', 60, 120);
+    ctx.fillText('🏆', 60, headerHeight + 60);
 
     ctx.fillStyle = '#f2f661';
-    ctx.font = 'bold 56px sans-serif';
-    ctx.fillText(data.achievementTitle || 'Achievement Unlocked!', 180, 120);
+    ctx.font = 'bold 48px sans-serif';
+    ctx.fillText(data.achievementTitle || 'Achievement Unlocked!', 180, headerHeight + 60);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = '32px sans-serif';
-    wrapText(ctx, data.achievementDescription || '', 60, 220, 1080, 50);
+    ctx.font = '28px sans-serif';
+    wrapText(ctx, data.achievementDescription || '', 60, headerHeight + 130, 1080, 45);
   }
 
+  // Call-to-action section at the bottom
+  const ctaY = canvas.height - 130;
+
+  // "Discover your Cost Per Nut now" text
   ctx.fillStyle = '#ababab';
   ctx.font = '24px sans-serif';
-  ctx.fillText('CPN v2 - Cost Per Nut Tracker', 60, canvas.height - 50);
+  ctx.textAlign = 'center';
+  ctx.fillText('Discover your Cost Per Nut now', canvas.width / 2, ctaY);
 
+  // "Discover your CPN" button
+  const buttonWidth = 300;
+  const buttonHeight = 50;
+  const buttonX = (canvas.width - buttonWidth) / 2;
+  const buttonY = ctaY + 15;
+
+  // Button background
   ctx.fillStyle = '#f2f661';
-  ctx.font = 'bold 28px sans-serif';
-  ctx.textAlign = 'right';
-  ctx.fillText('cpn.app', canvas.width - 60, canvas.height - 50);
+  ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+  // Button text
+  ctx.fillStyle = '#1f1f1f';
+  ctx.font = 'bold 24px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Discover your CPN', canvas.width / 2, buttonY + 33);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {

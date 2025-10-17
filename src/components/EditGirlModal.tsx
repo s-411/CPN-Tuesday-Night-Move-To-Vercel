@@ -3,6 +3,7 @@ import { Modal } from './Modal';
 import { RatingTileSelector } from './RatingTileSelector';
 import { supabase } from '../lib/supabase/client';
 import { Database } from '../lib/types/database';
+import { validateSingleWordName } from '../lib/validation/nameValidation';
 
 type Girl = Database['public']['Tables']['girls']['Row'];
 
@@ -39,6 +40,7 @@ const HAIR_COLORS = [
 
 export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModalProps) {
   const [name, setName] = useState(girl.name);
+  const [nameError, setNameError] = useState('');
   const [age, setAge] = useState(girl.age.toString());
   const [ethnicity, setEthnicity] = useState(girl.ethnicity || '');
   const [hairColor, setHairColor] = useState(girl.hair_color || '');
@@ -63,6 +65,12 @@ export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModa
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Block submission if name validation fails
+    if (nameError) {
+      setError('Enter first name only');
+      return;
+    }
 
     const ageNum = parseInt(age);
     if (ageNum < 18) {
@@ -118,10 +126,18 @@ export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModa
               className="input-cpn w-full"
               placeholder="Enter name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                const newName = e.target.value;
+                const validation = validateSingleWordName(newName);
+                setNameError(validation.error || '');
+                setName(newName);
+              }}
               required
               disabled={loading}
             />
+            {nameError && (
+              <p className="text-red-400 text-xs mt-1">{nameError}</p>
+            )}
           </div>
 
           <div>
@@ -258,7 +274,7 @@ export function EditGirlModal({ isOpen, onClose, onSuccess, girl }: EditGirlModa
           <button type="button" onClick={onClose} className="btn-secondary flex-1" disabled={loading}>
             Cancel
           </button>
-          <button type="submit" className="btn-cpn flex-1" disabled={loading}>
+          <button type="submit" className="btn-cpn flex-1" disabled={loading || !!nameError}>
             {loading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>

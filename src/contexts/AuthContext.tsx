@@ -18,6 +18,7 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
+  updateEmail: (newEmail: string) => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,7 +65,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Log initial URL on mount to see what params Supabase sends
+    console.log('[AuthContext] Initial mount - Full URL:', window.location.href);
+    console.log('[AuthContext] Query params:', window.location.search);
+    console.log('[AuthContext] Hash params:', window.location.hash);
+
+    // CRITICAL: Check for email_change BEFORE Supabase processes and clears the hash
+    const initialHash = window.location.hash;
+    if (initialHash.includes('type=email_change')) {
+      console.log('[AuthContext] Email change detected in initial hash, setting flag in sessionStorage');
+      sessionStorage.setItem('email_change_confirmed', 'true');
+    }
+
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('[AuthContext] Session retrieved:', session ? 'exists' : 'null');
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -75,7 +89,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[AuthContext] onAuthStateChange event:', event, 'pathname:', window.location.pathname);
+      console.log('[AuthContext] Session user email:', session?.user?.email);
+      console.log('[AuthContext] Session user email_confirmed_at:', session?.user?.email_confirmed_at);
+      console.log('[AuthContext] Session user new_email:', (session?.user as any)?.new_email);
+
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -85,6 +104,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setShowPaywall(false);
       }
       setLoading(false);
+
+      // Check both query params and hash params for email_change type
+      const queryParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const typeFromQuery = queryParams.get('type');
+      const typeFromHash = hashParams.get('type');
+
+      console.log('[AuthContext] type from query:', typeFromQuery, 'type from hash:', typeFromHash);
+
+      // Detect email change confirmation - check if event is SIGNED_IN and we have type=email_change in URL
+      // OR if the session email changed from what we had before
+      if ((typeFromQuery === 'email_change' || typeFromHash === 'email_change') && window.location.pathname !== '/email-confirmed') {
+        console.log('[AuthContext] Email change detected via URL params, redirecting to /email-confirmed');
+        const fullParams = window.location.search + window.location.hash;
+        window.history.pushState({}, '', '/email-confirmed' + fullParams);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      } else if (event === 'SIGNED_IN' && user && session?.user && user.email !== session.user.email) {
+        console.log('[AuthContext] Email change detected via session email mismatch, redirecting to /email-confirmed');
+        window.history.pushState({}, '', '/email-confirmed');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -116,11 +156,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user?.id]);
 
   const signUp = async (email: string, password: string, options?: { data?: { full_name?: string } }) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: options,
     });
+
+    // If signup successful, add user to Kit
+    if (!error && data.user) {
+      try {
+        console.log('[Auth] Syncing new user to Kit:', data.user.email);
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kit-user-signup-manual`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+              userId: data.user.id,
+              email: data.user.email,
+              firstName: options?.data?.full_name,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          console.error('[Auth] Failed to sync user to Kit:', await response.text());
+          // Don't throw - signup was successful, Kit sync is secondary
+        } else {
+          const result = await response.json();
+          console.log('[Auth] User synced to Kit:', result);
+        }
+      } catch (kitError) {
+        console.error('[Auth] Error syncing to Kit:', kitError);
+        // Don't throw - signup was successful, Kit sync is secondary
+      }
+    }
+
     return { error };
   };
 
@@ -138,7 +213,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetPassword = async (email: string) => {
-    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const appUrl = import.meta.env.VITE_APP_URL ||
+                   (typeof window !== 'undefined' ? window.location.origin : 'https://cpn-live.vercel.app');
+    console.log('[Auth] Password reset redirect URL:', `${appUrl}/password-update`);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${appUrl}/password-update`,
     });
@@ -149,6 +226,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.updateUser({
       password: newPassword,
     });
+    return { error };
+  };
+
+  const updateEmail = async (newEmail: string) => {
+    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const { error } = await supabase.auth.updateUser(
+      { email: newEmail },
+      { emailRedirectTo: `${appUrl}/email-confirmed` }
+    );
     return { error };
   };
 
@@ -165,6 +251,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshProfile,
     resetPassword,
     updatePassword,
+    updateEmail,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

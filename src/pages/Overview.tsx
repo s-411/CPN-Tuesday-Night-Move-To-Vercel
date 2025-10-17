@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, CreditCard as Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Share2 } from 'lucide-react';
+import { Plus, CreditCard as Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Share2, Users } from 'lucide-react';
 import { formatCurrency, formatRating, formatTime, calculateCostPerNut } from '../lib/calculations';
 import { ShareModal } from '../components/ShareModal';
 
@@ -23,12 +23,13 @@ interface OverviewProps {
   onAddData: (girl: Girl) => void;
   onEdit: (girl: Girl) => void;
   onDelete: (girl: Girl) => void;
+  onAddGirl: () => void;
 }
 
 type SortField = 'name' | 'rating' | 'totalNuts' | 'totalSpent' | 'costPerNut' | 'totalTime' | 'timePerNut' | 'costPerHour';
 type SortDirection = 'asc' | 'desc' | null;
 
-export function Overview({ girls, onAddData, onEdit, onDelete }: OverviewProps) {
+export function Overview({ girls, onAddData, onEdit, onDelete, onAddGirl }: OverviewProps) {
   const [sortField, setSortField] = useState<SortField>('costPerNut');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('active');
@@ -96,6 +97,27 @@ export function Overview({ girls, onAddData, onEdit, onDelete }: OverviewProps) 
   const totalSpent = activeGirls.reduce((sum, g) => sum + g.totalSpent, 0);
   const totalNuts = activeGirls.reduce((sum, g) => sum + g.totalNuts, 0);
   const avgCostPerNut = calculateCostPerNut(totalSpent, totalNuts);
+
+  // Show empty state if no girls exist at all
+  if (girls.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl mb-2">Overview</h2>
+          <p className="text-cpn-gray">Compare all profiles in a comprehensive table view</p>
+        </div>
+        <div className="card-cpn text-center py-12">
+          <Users size={64} className="mx-auto mb-4 text-cpn-gray" />
+          <h3 className="text-xl mb-2">No girls yet</h3>
+          <p className="text-cpn-gray mb-6">Add your first girl to start tracking metrics</p>
+          <button className="btn-cpn" onClick={onAddGirl}>
+            <Plus size={20} className="inline mr-2" />
+            Add Girl
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

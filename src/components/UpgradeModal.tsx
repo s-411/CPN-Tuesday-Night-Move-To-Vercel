@@ -69,13 +69,15 @@ export default function UpgradeModal({ isOpen, onClose, featureName = 'this feat
           <X className="w-6 h-6" />
         </button>
 
-        <div className="p-6 md:p-12 clear-both">
-          <div className="text-center mb-6 md:mb-10">
-            <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 bg-[var(--color-cpn-yellow)]/10 rounded-full mb-3 md:mb-4">
-              <Lock className="w-6 h-6 md:w-8 md:h-8 text-[var(--color-cpn-yellow)]" />
+        <div className="p-6 md:p-12 pt-4 md:pt-6 clear-both">
+          <div className="mb-6 md:mb-10">
+            <div className="flex items-center gap-3 mb-2 md:mb-3">
+              <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-[var(--color-cpn-yellow)]/10 rounded-full flex-shrink-0">
+                <Lock className="w-5 h-5 md:w-6 md:h-6 text-[var(--color-cpn-yellow)]" />
+              </div>
+              <h2 className="text-2xl md:text-4xl font-bold text-white">Activate Player Mode</h2>
             </div>
-            <h2 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-3">Activate Player Mode</h2>
-            <p className="text-zinc-400 text-sm md:text-lg">
+            <p className="text-zinc-400 text-sm md:text-lg pl-0 md:pl-[60px]">
               Unlock {featureName} and all premium features
             </p>
           </div>

@@ -64,11 +64,12 @@ export async function POST(request: NextRequest) {
     }
 
     let customerId = userData?.stripe_customer_id;
+    const currentEmail = user.email || userData?.email;
 
     // Create Stripe customer if doesn't exist
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: userData?.email || user.email!,
+        email: currentEmail,
         metadata: {
           supabase_user_id: user.id,
         },
@@ -80,6 +81,18 @@ export async function POST(request: NextRequest) {
         .from('users')
         .update({ stripe_customer_id: customerId })
         .eq('id', user.id);
+    } else {
+      // Update existing Stripe customer email if it changed
+      // Always use the most current email from auth (user.email)
+      try {
+        await stripe.customers.update(customerId, {
+          email: currentEmail,
+        });
+        console.log('[Checkout API] Updated Stripe customer email:', { customerId, email: currentEmail });
+      } catch (updateError) {
+        console.error('[Checkout API] Failed to update Stripe customer email:', updateError);
+        // Continue with checkout even if email update fails
+      }
     }
 
     // Determine success and cancel URLs

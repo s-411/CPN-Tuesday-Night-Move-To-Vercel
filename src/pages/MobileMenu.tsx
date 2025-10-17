@@ -2,11 +2,12 @@ import { Users, TrendingUp, BarChart3, Plus, Table, Globe, Trophy, Share2, Setti
 
 interface MobileMenuProps {
   activeView: string;
-  onNavigate: (view: 'dashboard' | 'girls' | 'overview' | 'analytics' | 'dataentry' | 'datavault' | 'leaderboards' | 'share' | 'settings') => void;
+  onNavigate: (view: 'dashboard' | 'girls' | 'overview' | 'analytics' | 'dataentry' | 'datavault' | 'leaderboards' | 'sharecenter' | 'settings') => void;
   onSignOut: () => void;
+  subscriptionTier?: string;
 }
 
-export function MobileMenu({ activeView, onNavigate, onSignOut }: MobileMenuProps) {
+export function MobileMenu({ activeView, onNavigate, onSignOut, subscriptionTier }: MobileMenuProps) {
   const menuItems = [
     { view: 'dashboard' as const, label: 'Dashboard', icon: TrendingUp },
     { view: 'girls' as const, label: 'Girls', icon: Users },
@@ -15,7 +16,7 @@ export function MobileMenu({ activeView, onNavigate, onSignOut }: MobileMenuProp
     { view: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
     { view: 'datavault' as const, label: 'Data Vault', icon: Globe },
     { view: 'leaderboards' as const, label: 'Leaderboards', icon: Trophy },
-    { view: 'share' as const, label: 'Share', icon: Share2 },
+    { view: 'sharecenter' as const, label: 'Share', icon: Share2 },
     { view: 'settings' as const, label: 'Settings', icon: Settings },
   ];
 
@@ -29,11 +30,13 @@ export function MobileMenu({ activeView, onNavigate, onSignOut }: MobileMenuProp
       <nav className="space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
+          const isLocked = subscriptionTier === 'boyfriend' && ['dataentry', 'overview', 'analytics', 'datavault'].includes(item.view);
           return (
             <div
               key={item.view}
               className={`sidebar-item ${activeView === item.view ? 'active' : ''}`}
               onClick={() => onNavigate(item.view)}
+              data-locked={isLocked ? 'true' : undefined}
             >
               <Icon size={20} />
               <span>{item.label}</span>

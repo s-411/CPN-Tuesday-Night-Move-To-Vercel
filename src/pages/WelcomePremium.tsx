@@ -1,17 +1,70 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { goTo } from '../lib/navigation';
 import { clearOnboarding } from '../lib/onboarding/session';
 
 export function WelcomePremium() {
   const { profile } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasTimedOut, setHasTimedOut] = useState(false);
 
   useEffect(() => {
     // Clear onboarding session data when landing here
     clearOnboarding();
   }, []);
 
-  const subscriptionName = profile?.subscription_tier === 'player' ? 'Player Mode' : 'Boyfriend Mode';
+  useEffect(() => {
+    // Wait for profile to load to prevent flashing wrong subscription tier
+    if (profile) {
+      setIsLoading(false);
+    }
+
+    // Timeout after 10 seconds - redirect to sign-in if profile never loads
+    const timeout = setTimeout(() => {
+      if (!profile) {
+        setHasTimedOut(true);
+        setTimeout(() => {
+          goTo('/');
+        }, 2000);
+      }
+    }, 10000);
+
+    return () => clearTimeout(timeout);
+  }, [profile]);
+
+  // Show loading state while waiting for profile to load
+  if (isLoading && !hasTimedOut) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-cpn-dark p-6">
+        <div className="max-w-2xl w-full">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-cpn-yellow/10 rounded-full mb-6 animate-pulse">
+              <Loader2 className="w-8 h-8 text-cpn-yellow animate-spin" />
+            </div>
+            <h2 className="text-2xl font-bold mb-4">Loading your account...</h2>
+            <p className="text-cpn-gray">Please wait a moment</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show timeout message if profile didn't load
+  if (hasTimedOut) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-cpn-dark p-6">
+        <div className="max-w-2xl w-full">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Taking longer than expected...</h2>
+            <p className="text-cpn-gray mb-4">Redirecting you to sign in</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const subscriptionName = profile?.subscription_tier === 'player' ? 'Player Mode' : 'Premium';
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-cpn-dark p-6">

@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { goTo } from '../../lib/navigation';
-import { getStep1, getStep2, setStep3, setState } from '../../lib/onboarding/session';
+import { getStep1, getStep2, setState } from '../../lib/onboarding/session';
 import { useAuth } from '../../contexts/AuthContext';
 import { commitOnboardingToSupabase } from '../../lib/onboarding/commit';
 import { OnboardingLayout } from '../../components/OnboardingLayout';
 
 export function Step3() {
-  const { signUp, signIn } = useAuth();
-  const [name, setName] = useState('');
+  const { signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,11 +28,7 @@ export function Step3() {
 
   const handleSubmit = async () => {
     setError('');
-    
-    if (!name.trim()) {
-      setError('Please enter your name');
-      return;
-    }
+
     if (!email || !password) {
       setError('Please enter email and password');
       return;
@@ -42,25 +37,16 @@ export function Step3() {
       setError('Password must be at least 6 characters');
       return;
     }
-    
+
     setLoading(true);
     try {
-      // Save name to session storage
-      setStep3({ name, v: 1 });
-      
       // Create account
-      const { error: signUpError } = await signUp(email, password, {
-        data: { full_name: name }
-      });
-      
+      const { error: signUpError } = await signUp(email, password);
+
       if (signUpError) {
-        // Try sign-in fallback if user exists
-        const { error: signInError } = await signIn(email, password);
-        if (signInError) {
-          throw signInError;
-        }
+        throw signUpError;
       }
-      
+
       // Wait for auth to settle
       await new Promise(resolve => setTimeout(resolve, 500));
       
@@ -110,19 +96,6 @@ export function Step3() {
           )}
 
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-cpn-gray mb-2">
-                First Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                className="input-cpn w-full"
-                placeholder="Your first name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={loading || success}
-              />
-            </div>
             <div>
               <label className="block text-sm text-cpn-gray mb-2">
                 Email <span className="text-red-500">*</span>

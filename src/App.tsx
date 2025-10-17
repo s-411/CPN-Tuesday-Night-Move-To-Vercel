@@ -7,16 +7,18 @@ import { SignIn } from './pages/SignIn';
 import { SignUp } from './pages/SignUp';
 import { ResetPassword } from './pages/ResetPassword';
 import { PasswordUpdate } from './pages/PasswordUpdate';
+import { EmailConfirmed } from './pages/EmailConfirmed';
 import { Dashboard } from './pages/Dashboard';
 import { Overview } from './pages/Overview';
 import { GirlDetail } from './pages/GirlDetail';
 import { Analytics } from './pages/Analytics';
 import { DataEntry } from './pages/DataEntry';
 import { AddDataPage } from './pages/AddDataPage';
-import { Share } from './pages/Share';
 import { ShareCenter } from './pages/ShareCenter';
 import { DataVault } from './pages/DataVault';
 import { Leaderboards } from './pages/Leaderboards';
+import { LeaderboardDetail } from './pages/LeaderboardDetail';
+import { JoinLeaderboard } from './pages/JoinLeaderboard';
 import { AddGirlModal } from './components/AddGirlModal';
 import { AddDataModal } from './components/AddDataModal';
 import { EditGirlModal } from './components/EditGirlModal';
@@ -26,7 +28,7 @@ import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import SubscriptionGate from './components/SubscriptionGate';
 import { supabase } from './lib/supabase/client';
 import { Database } from './lib/types/database';
-import { calculateCostPerNut, calculateTimePerNut, calculateCostPerHour, formatCurrency, formatRating } from './lib/calculations';
+import { calculateCostPerNut, calculateTimePerNut, calculateCostPerHour, formatCurrency, formatRating, formatTime } from './lib/calculations';
 import { exportGirlsData } from './lib/export';
 import { getStep1 as getOnboardStep1, getStep2 as getOnboardStep2 } from './lib/onboarding/session';
 import { goTo } from './lib/navigation';
@@ -52,7 +54,7 @@ interface GirlWithMetrics extends Girl {
 }
 
 function AppContent() {
-  const { user, profile, loading: authLoading, signOut, showPaywall, setShowPaywall } = useAuth();
+  const { user, profile, loading: authLoading, signOut, showPaywall, setShowPaywall, updateEmail, refreshProfile } = useAuth();
   const [authView, setAuthView] = useState<'signin' | 'signup' | 'resetpassword' | 'passwordupdate'>('signin');
   const [activeView, setActiveView] = useState<'dashboard' | 'girls' | 'overview' | 'analytics' | 'dataentry' | 'datavault' | 'leaderboards' | 'share' | 'sharecenter' | 'settings' | 'mobilemenu'>('dashboard');
   const [showAddGirlModal, setShowAddGirlModal] = useState(false);
@@ -66,6 +68,9 @@ function AppContent() {
   const [girls, setGirls] = useState<GirlWithMetrics[]>([]);
   const [loading, setLoading] = useState(true);
   const [pathname, setPathname] = useState<string>(typeof window !== 'undefined' ? window.location.pathname : '/');
+  const [viewingLeaderboardGroup, setViewingLeaderboardGroup] = useState<string | null>(null);
+  const [joiningLeaderboardToken, setJoiningLeaderboardToken] = useState<string | null>(null);
+  const [leaderboardsRefresh, setLeaderboardsRefresh] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -104,6 +109,13 @@ function AppContent() {
       setAuthView('passwordupdate');
     } else if (path === '/reset-password') {
       setAuthView('resetpassword');
+    } else if (path === '/email-confirmed') {
+      // Email confirmation handled by dedicated component
+    } else if (path.startsWith('/join/')) {
+      // Handle invite link: /join/:token
+      const token = path.substring(6); // Remove '/join/'
+      setJoiningLeaderboardToken(token);
+      setActiveView('leaderboards');
     }
   }, [pathname]);
 
@@ -118,12 +130,23 @@ function AppContent() {
       const hash = window.location.hash.substring(1);
       if (hash === 'sharing-center' || hash === 'sharecenter') {
         setActiveView('sharecenter');
+      } else if (hash === 'settings') {
+        setActiveView('settings');
       }
     };
 
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  useEffect(() => {
+    const handleNavigateToSettings = () => {
+      setActiveView('settings');
+    };
+
+    window.addEventListener('navigate-to-settings', handleNavigateToSettings);
+    return () => window.removeEventListener('navigate-to-settings', handleNavigateToSettings);
   }, []);
 
   // Redirect unauthenticated users from /signup to onboarding /step-1
@@ -319,6 +342,10 @@ function AppContent() {
       );
     }
 
+    if (pathname === '/email-confirmed') {
+      return <EmailConfirmed />;
+    }
+
     return (
       <SignIn
         onSwitchToSignUp={() => {
@@ -351,6 +378,11 @@ function AppContent() {
     return <Step4 />;
   }
 
+  // Email confirmation page (authenticated users)
+  if (pathname === '/email-confirmed') {
+    return <EmailConfirmed />;
+  }
+
   const canAddGirl = profile?.subscription_tier === 'boyfriend' ? activeGirls.length < 1 : activeGirls.length < 50;
 
   return (
@@ -359,9 +391,6 @@ function AppContent() {
         <div className="mb-8">
           <img src="/CPN fav.png" alt="CPN" className="w-[60px] pb-2" />
           <p className="text-sm text-cpn-gray">Cost Per Nut Calculator</p>
-          <div className="mt-2 text-xs text-cpn-gray">
-            {profile?.email}
-          </div>
         </div>
 
         <nav className="flex-1 space-y-2">
@@ -373,19 +402,19 @@ function AppContent() {
             <Users size={20} />
             <span>Girls</span>
           </div>
-          <div className={`sidebar-item ${activeView === 'dataentry' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('dataentry'); }}>
+          <div className={`sidebar-item ${activeView === 'dataentry' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('dataentry'); }} data-locked={profile?.subscription_tier === 'boyfriend' ? 'true' : undefined}>
             <Plus size={20} />
             <span>Quick Data Entry</span>
           </div>
-          <div className={`sidebar-item ${activeView === 'overview' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('overview'); }}>
+          <div className={`sidebar-item ${activeView === 'overview' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('overview'); }} data-locked={profile?.subscription_tier === 'boyfriend' ? 'true' : undefined}>
             <Table size={20} />
             <span>Overview</span>
           </div>
-          <div className={`sidebar-item ${activeView === 'analytics' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('analytics'); }}>
+          <div className={`sidebar-item ${activeView === 'analytics' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('analytics'); }} data-locked={profile?.subscription_tier === 'boyfriend' ? 'true' : undefined}>
             <BarChart3 size={20} />
             <span>Analytics</span>
           </div>
-          <div className={`sidebar-item ${activeView === 'datavault' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('datavault'); }}>
+          <div className={`sidebar-item ${activeView === 'datavault' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('datavault'); }} data-locked={profile?.subscription_tier === 'boyfriend' ? 'true' : undefined}>
             <Globe size={20} />
             <span>Data Vault</span>
           </div>
@@ -393,7 +422,7 @@ function AppContent() {
             <Trophy size={20} />
             <span>Leaderboards</span>
           </div>
-          <div className={`sidebar-item ${activeView === 'share' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('share'); }}>
+          <div className={`sidebar-item ${activeView === 'sharecenter' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('sharecenter'); }}>
             <Share2 size={20} />
             <span>Share</span>
           </div>
@@ -444,15 +473,26 @@ function AppContent() {
                 canAddGirl={canAddGirl}
                 subscriptionTier={profile?.subscription_tier || 'free'}
                 onActivatePlayerMode={() => setShowUpgradeModal(true)}
+                onRefresh={loadGirls}
+                totalGirls={girls.length}
+                activeGirlsCount={activeGirls.length}
+                totalSpent={totalSpent}
+                totalNuts={totalNuts}
               />
             )}
             {activeView === 'overview' && (
-              <Overview
-                girls={girls}
-                onAddData={handleAddData}
-                onEdit={handleEditGirl}
-                onDelete={handleDeleteGirl}
-              />
+              <SubscriptionGate
+                isLocked={profile?.subscription_tier === 'boyfriend'}
+                featureName="Overview"
+              >
+                <Overview
+                  girls={girls}
+                  onAddData={handleAddData}
+                  onEdit={handleEditGirl}
+                  onDelete={handleDeleteGirl}
+                  onAddGirl={() => setShowAddGirlModal(true)}
+                />
+              </SubscriptionGate>
             )}
             {activeView === 'analytics' && (
               <SubscriptionGate
@@ -463,7 +503,12 @@ function AppContent() {
               </SubscriptionGate>
             )}
             {activeView === 'dataentry' && user && (
-              <DataEntry userId={user.id} onSuccess={loadGirls} />
+              <SubscriptionGate
+                isLocked={profile?.subscription_tier === 'boyfriend'}
+                featureName="Quick Data Entry"
+              >
+                <DataEntry userId={user.id} onSuccess={loadGirls} />
+              </SubscriptionGate>
             )}
             {activeView === 'datavault' && (
               <SubscriptionGate
@@ -474,23 +519,42 @@ function AppContent() {
               </SubscriptionGate>
             )}
             {activeView === 'leaderboards' && (
-              <SubscriptionGate
-                isLocked={profile?.subscription_tier === 'boyfriend'}
-                featureName="Leaderboards"
-              >
-                <Leaderboards />
-              </SubscriptionGate>
-            )}
-            {activeView === 'share' && (
-              <SubscriptionGate
-                isLocked={profile?.subscription_tier === 'boyfriend'}
-                featureName="Share"
-              >
-                <Share />
-              </SubscriptionGate>
+              <>
+                {joiningLeaderboardToken ? (
+                  <JoinLeaderboard
+                    inviteToken={joiningLeaderboardToken}
+                    onJoinSuccess={(groupId) => {
+                      setJoiningLeaderboardToken(null);
+                      setViewingLeaderboardGroup(groupId);
+                      window.history.pushState({}, '', '/leaderboards');
+                    }}
+                    onCancel={() => {
+                      setJoiningLeaderboardToken(null);
+                      setActiveView('dashboard');
+                      window.history.pushState({}, '', '/');
+                    }}
+                  />
+                ) : viewingLeaderboardGroup ? (
+                  <LeaderboardDetail
+                    groupId={viewingLeaderboardGroup}
+                    onBack={() => {
+                      setViewingLeaderboardGroup(null);
+                      // Trigger refresh when going back to groups list
+                      setLeaderboardsRefresh(prev => prev + 1);
+                    }}
+                  />
+                ) : (
+                  <Leaderboards
+                    onNavigateToGroup={(groupId) => {
+                      setViewingLeaderboardGroup(groupId);
+                    }}
+                    refreshTrigger={leaderboardsRefresh}
+                  />
+                )}
+              </>
             )}
             {activeView === 'sharecenter' && <ShareCenter />}
-            {activeView === 'settings' && <SettingsView profile={profile} girls={girls} onSignOut={signOut} onActivatePlayerMode={() => setShowUpgradeModal(true)} />}
+            {activeView === 'settings' && <SettingsView user={user} profile={profile} girls={girls} onSignOut={signOut} onActivatePlayerMode={() => setShowUpgradeModal(true)} updateEmail={updateEmail} refreshProfile={refreshProfile} />}
             {activeView === 'mobilemenu' && (
               <MobileMenu
                 activeView={activeView}
@@ -499,6 +563,7 @@ function AppContent() {
                   setActiveView(view);
                 }}
                 onSignOut={signOut}
+                subscriptionTier={profile?.subscription_tier}
               />
             )}
           </>
@@ -524,7 +589,7 @@ function AppContent() {
           >
             <Plus size={28} className="text-cpn-dark" />
           </div>
-          <div className={`mobile-nav-item ${activeView === 'analytics' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('analytics'); }}>
+          <div className={`mobile-nav-item ${activeView === 'analytics' ? 'active' : ''}`} onClick={() => { setAddingDataForGirl(null); setActiveView('analytics'); }} data-locked={profile?.subscription_tier === 'boyfriend' ? 'true' : undefined}>
             <BarChart3 size={20} />
             <span className="text-xs">Analytics</span>
           </div>
@@ -608,9 +673,14 @@ interface GirlsViewProps {
   canAddGirl: boolean;
   subscriptionTier: string;
   onActivatePlayerMode: () => void;
+  onRefresh: () => void;
+  totalGirls?: number;
+  activeGirlsCount?: number;
+  totalSpent?: number;
+  totalNuts?: number;
 }
 
-function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail, canAddGirl, subscriptionTier, onActivatePlayerMode }: GirlsViewProps) {
+function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail, canAddGirl, subscriptionTier, onActivatePlayerMode, onRefresh, totalGirls = 0, activeGirlsCount = 0, totalSpent = 0, totalNuts = 0 }: GirlsViewProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -621,6 +691,29 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
         <button className="btn-cpn" onClick={onAddGirl} disabled={!canAddGirl}>
           Add New Girl
         </button>
+      </div>
+
+      {/* Statistics Boxes */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card-cpn">
+          <p className="text-cpn-gray text-sm mb-2">Total Girls</p>
+          <p className="text-4xl font-bold">{totalGirls}</p>
+        </div>
+
+        <div className="card-cpn">
+          <p className="text-cpn-gray text-sm mb-2">Active Girls</p>
+          <p className="text-4xl font-bold">{activeGirlsCount}</p>
+        </div>
+
+        <div className="card-cpn">
+          <p className="text-cpn-gray text-sm mb-2">Total Spent</p>
+          <p className="text-4xl font-bold text-cpn-yellow">{formatCurrency(totalSpent)}</p>
+        </div>
+
+        <div className="card-cpn">
+          <p className="text-cpn-gray text-sm mb-2">Total Nuts</p>
+          <p className="text-4xl font-bold">{totalNuts}</p>
+        </div>
       </div>
 
       {!canAddGirl && subscriptionTier === 'boyfriend' && (
@@ -649,44 +742,72 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {girls.map((girl) => (
             <div key={girl.id} className="card-cpn">
-              <div
-                className="cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => onViewDetail(girl)}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-bold" style={{ fontSize: '2.25rem', lineHeight: '2.75rem' }}>{girl.name}</h3>
-                    <p className="text-cpn-gray text-sm">{girl.age} years old</p>
-                    <p className="text-cpn-yellow text-sm mt-1">{formatRating(girl.rating)}</p>
-                  </div>
-                  {!girl.is_active && (
-                    <span className="px-2 py-1 text-xs bg-cpn-gray/20 text-cpn-gray rounded">Inactive</span>
-                  )}
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="font-bold" style={{ fontSize: '2.25rem', lineHeight: '2.75rem' }}>{girl.name}</h3>
+                  <p className="text-cpn-gray text-sm">{girl.age} • {girl.nationality || 'American'}</p>
+                  <p className="text-cpn-yellow text-sm mt-1">{formatRating(girl.rating)}</p>
                 </div>
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      const { error } = await supabase
+                        .from('girls')
+                        .update({ is_active: !girl.is_active })
+                        .eq('id', girl.id);
+                      if (error) throw error;
+                      await onRefresh();
+                    } catch (error) {
+                      console.error('Error toggling active status:', error);
+                    }
+                  }}
+                  className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none"
+                  style={{
+                    backgroundColor: girl.is_active ? '#52D726' : 'rgba(171, 171, 171, 0.3)'
+                  }}
+                >
+                  <span
+                    className="inline-block h-5 w-5 transform rounded-full bg-white transition-transform"
+                    style={{
+                      transform: girl.is_active ? 'translateX(26px)' : 'translateX(4px)'
+                    }}
+                  />
+                </button>
+              </div>
 
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-cpn-gray">Total Spent</span>
-                    <span className="font-bold">{formatCurrency(girl.totalSpent)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-cpn-gray">Total Nuts</span>
-                    <span className="font-bold">{girl.totalNuts}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-cpn-gray">Cost/Nut</span>
-                    <span className="font-bold text-cpn-yellow">{formatCurrency(girl.costPerNut)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-cpn-gray">Entries</span>
-                    <span className="font-bold">{girl.entryCount}</span>
-                  </div>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className="text-cpn-gray text-sm mb-1">Total Spent</p>
+                  <p className="font-bold text-xl">{formatCurrency(girl.totalSpent)}</p>
+                </div>
+                <div>
+                  <p className="text-cpn-gray text-sm mb-1">Total Nuts</p>
+                  <p className="font-bold text-xl">{girl.totalNuts}</p>
+                </div>
+                <div>
+                  <p className="text-cpn-gray text-sm mb-1">Cost/Nut</p>
+                  <p className="font-bold text-xl text-cpn-yellow">{formatCurrency(girl.costPerNut)}</p>
+                </div>
+                <div>
+                  <p className="text-cpn-gray text-sm mb-1">Total Time</p>
+                  <p className="font-bold text-xl">{formatTime(girl.totalTime)}</p>
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="text-cpn-gray text-xs mb-4">
+                {girl.entryCount} entries
+              </div>
+
+              <div className="flex gap-2 items-center">
                 <button
-                  className="btn-cpn flex-1 flex items-center justify-center gap-2"
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 font-bold transition-all duration-200"
+                  style={{
+                    border: '2px solid var(--color-cpn-yellow)',
+                    borderRadius: '100px',
+                    backgroundColor: 'var(--color-cpn-dark)',
+                    color: 'var(--color-cpn-yellow)'
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onAddData(girl);
@@ -696,7 +817,13 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
                   Add Data
                 </button>
                 <button
-                  className="btn-secondary px-4"
+                  className="px-4 py-3 transition-all duration-200"
+                  style={{
+                    border: '1px solid rgba(171, 171, 171, 0.2)',
+                    borderRadius: '100px',
+                    backgroundColor: 'var(--color-cpn-dark2)',
+                    color: 'var(--color-cpn-white)'
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onEdit(girl);
@@ -705,13 +832,18 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
                   <Edit size={16} />
                 </button>
                 <button
-                  className="btn-danger px-4"
+                  className="px-4 py-3 transition-all duration-200"
+                  style={{
+                    border: '1px solid rgba(171, 171, 171, 0.2)',
+                    borderRadius: '100px',
+                    backgroundColor: 'var(--color-cpn-dark2)'
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete(girl);
                   }}
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={16} className="text-red-500" />
                 </button>
               </div>
             </div>
@@ -722,8 +854,14 @@ function GirlsView({ girls, onAddGirl, onAddData, onEdit, onDelete, onViewDetail
   );
 }
 
-function SettingsView({ profile, girls, onSignOut, onActivatePlayerMode }: { profile: any; girls: any[]; onSignOut: () => void; onActivatePlayerMode: () => void }) {
+function SettingsView({ user, profile, girls, onSignOut, onActivatePlayerMode, updateEmail, refreshProfile }: { user: any; profile: any; girls: any[]; onSignOut: () => void; onActivatePlayerMode: () => void; updateEmail: (newEmail: string) => Promise<{ error: any | null }>; refreshProfile: () => Promise<void> }) {
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+  const [emailUpdateMessage, setEmailUpdateMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [displayName, setDisplayName] = useState('');
+  const [isUpdatingDisplayName, setIsUpdatingDisplayName] = useState(false);
+  const [displayNameMessage, setDisplayNameMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const handleManageSubscription = async () => {
     try {
@@ -755,6 +893,96 @@ function SettingsView({ profile, girls, onSignOut, onActivatePlayerMode }: { pro
       alert(error instanceof Error ? error.message : 'Failed to open billing portal');
     } finally {
       setIsLoadingPortal(false);
+    }
+  };
+
+  const handleUpdateEmail = async () => {
+    if (!newEmail || newEmail.trim() === '') {
+      setEmailUpdateMessage({ type: 'error', text: 'Please enter a valid email address' });
+      return;
+    }
+
+    const currentEmail = user?.email || profile?.email;
+    if (newEmail === currentEmail) {
+      setEmailUpdateMessage({ type: 'error', text: 'This is already your current email address' });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      setEmailUpdateMessage({ type: 'error', text: 'Please enter a valid email address' });
+      return;
+    }
+
+    try {
+      setIsUpdatingEmail(true);
+      setEmailUpdateMessage(null);
+
+      const { error } = await updateEmail(newEmail);
+
+      if (error) {
+        throw error;
+      }
+
+      setEmailUpdateMessage({
+        type: 'success',
+        text: 'Confirmation email sent! Check your new email address to confirm the change.'
+      });
+      setNewEmail('');
+    } catch (error) {
+      console.error('Error updating email:', error);
+      setEmailUpdateMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to update email address'
+      });
+    } finally {
+      setIsUpdatingEmail(false);
+    }
+  };
+
+  const handleUpdateDisplayName = async () => {
+    if (!displayName || displayName.trim() === '') {
+      setDisplayNameMessage({ type: 'error', text: 'Please enter a display name' });
+      return;
+    }
+
+    if (displayName.trim().length < 2) {
+      setDisplayNameMessage({ type: 'error', text: 'Display name must be at least 2 characters' });
+      return;
+    }
+
+    if (displayName.trim().length > 50) {
+      setDisplayNameMessage({ type: 'error', text: 'Display name must be 50 characters or less' });
+      return;
+    }
+
+    try {
+      setIsUpdatingDisplayName(true);
+      setDisplayNameMessage(null);
+
+      const { error } = await supabase
+        .from('users')
+        .update({ display_name: displayName.trim() })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setDisplayNameMessage({ type: 'success', text: 'Display name updated successfully!' });
+      setDisplayName('');
+
+      // Reload page to immediately reflect changes everywhere
+      setTimeout(() => {
+        window.location.hash = 'settings';
+        window.location.reload();
+      }, 500); // Short delay to show success message
+    } catch (error) {
+      console.error('Error updating display name:', error);
+      setDisplayNameMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to update display name'
+      });
+    } finally {
+      setIsUpdatingDisplayName(false);
     }
   };
 
@@ -795,17 +1023,68 @@ function SettingsView({ profile, girls, onSignOut, onActivatePlayerMode }: { pro
             <h3 className="text-xl mb-4">Profile</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-cpn-gray mb-2">Email</label>
-                <input type="email" className="input-cpn w-full" value={profile?.email || ''} disabled />
+                <label className="block text-sm text-cpn-gray mb-2">Current Email</label>
+                <input type="email" className="input-cpn w-full" value={user?.email || profile?.email || ''} disabled />
               </div>
               <div>
-                <label className="block text-sm text-cpn-gray mb-2">Account Created</label>
+                <label className="block text-sm text-cpn-gray mb-2">New Email</label>
+                <input
+                  type="email"
+                  className="input-cpn w-full"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="Enter new email address"
+                  disabled={isUpdatingEmail}
+                />
+                <button
+                  className="btn-cpn mt-2"
+                  onClick={handleUpdateEmail}
+                  disabled={isUpdatingEmail || !newEmail}
+                >
+                  {isUpdatingEmail ? 'Updating...' : 'Update Email'}
+                </button>
+                {emailUpdateMessage && (
+                  <div className={`mt-2 p-2 rounded text-sm ${
+                    emailUpdateMessage.type === 'success'
+                      ? 'bg-green-500/10 text-green-400'
+                      : 'bg-red-500/10 text-red-400'
+                  }`}>
+                    {emailUpdateMessage.text}
+                  </div>
+                )}
+              </div>
+              <div className="mt-8">
+                <label className="block text-sm text-cpn-gray mb-2">
+                  Display Name {profile?.display_name && <span className="text-cpn-white">(Current: {profile.display_name})</span>}
+                </label>
                 <input
                   type="text"
                   className="input-cpn w-full"
-                  value={profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : ''}
-                  disabled
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Enter your display name"
+                  disabled={isUpdatingDisplayName}
+                  maxLength={50}
                 />
+                <button
+                  className="btn-cpn mt-2"
+                  onClick={handleUpdateDisplayName}
+                  disabled={isUpdatingDisplayName || !displayName}
+                >
+                  {isUpdatingDisplayName ? 'Updating...' : profile?.display_name ? 'Update Display Name' : 'Set Display Name'}
+                </button>
+                {displayNameMessage && (
+                  <div className={`mt-2 p-2 rounded text-sm ${
+                    displayNameMessage.type === 'success'
+                      ? 'bg-green-500/10 text-green-400'
+                      : 'bg-red-500/10 text-red-400'
+                  }`}>
+                    {displayNameMessage.text}
+                  </div>
+                )}
+                <p className="text-xs text-cpn-gray mt-2">
+                  Your display name is used in leaderboards and other social features
+                </p>
               </div>
             </div>
           </div>
@@ -859,28 +1138,30 @@ function SettingsView({ profile, girls, onSignOut, onActivatePlayerMode }: { pro
             )}
           </div>
 
-        <div className="card-cpn">
-          <h3 className="text-xl mb-4">Data Management</h3>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-cpn-gray mb-2">Export all your data to CSV format for backup or analysis</p>
-              <button
-                className="btn-cpn"
-                onClick={() => exportGirlsData(girls)}
-                disabled={girls.length === 0}
-              >
-                Export All Data to CSV
-              </button>
-            </div>
-            <div className="p-3 bg-cpn-dark rounded-lg">
-              <p className="text-xs text-cpn-gray">
-                Total Profiles: <span className="text-white font-bold">{girls.length}</span>
-                {' • '}
-                Total Entries: <span className="text-white font-bold">{girls.reduce((sum, g) => sum + g.entryCount, 0)}</span>
-              </p>
+        {profile?.can_export_data && (
+          <div className="card-cpn">
+            <h3 className="text-xl mb-4">Data Management</h3>
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-cpn-gray mb-2">Export all your data to CSV format for backup or analysis</p>
+                <button
+                  className="btn-cpn"
+                  onClick={() => exportGirlsData(girls)}
+                  disabled={girls.length === 0}
+                >
+                  Export All Data to CSV
+                </button>
+              </div>
+              <div className="p-3 bg-cpn-dark rounded-lg">
+                <p className="text-xs text-cpn-gray">
+                  Total Profiles: <span className="text-white font-bold">{girls.length}</span>
+                  {' • '}
+                  Total Entries: <span className="text-white font-bold">{girls.reduce((sum, g) => sum + g.entryCount, 0)}</span>
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="card-cpn">
           <h3 className="text-xl mb-4 text-red-500">Sign Out</h3>
