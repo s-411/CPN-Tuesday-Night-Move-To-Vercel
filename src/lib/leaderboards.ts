@@ -91,61 +91,7 @@ export async function createGroup(name: string, userId: string) {
 
     if (error) throw error;
 
-    // Explicitly add creator as member (defense in depth - works with or without trigger)
-    // ON CONFLICT in database constraint prevents duplicates if trigger also runs
-    try {
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('display_name, email')
-        .eq('id', userId)
-        .single();
-
-      if (userError) {
-        console.error('Failed to fetch user data for creator:', {
-          code: userError.code,
-          message: userError.message,
-          details: userError.details,
-          hint: userError.hint,
-          userId
-        });
-      }
-
-      const displayUsername = userData?.display_name || userData?.email?.split('@')[0] || 'User';
-
-      console.log('Attempting to add creator as member:', {
-        groupId: data.id,
-        userId,
-        displayUsername
-      });
-
-      const { data: memberData, error: memberError } = await supabase
-        .from('leaderboard_members')
-        .insert({
-          group_id: data.id,
-          user_id: userId,
-          display_username: displayUsername,
-        })
-        .select()
-        .single();
-
-      if (memberError) {
-        // Log full error details to understand what's failing
-        console.error('Creator auto-join failed:', {
-          code: memberError.code,
-          message: memberError.message,
-          details: memberError.details,
-          hint: memberError.hint,
-          groupId: data.id,
-          userId,
-          displayUsername
-        });
-      } else {
-        console.log('Creator successfully added:', memberData);
-      }
-    } catch (error) {
-      console.error('Creator auto-join exception:', error);
-    }
-
+    // Creator is automatically added by database trigger (add_creator_as_member)
     return { data, error: null };
   } catch (error: any) {
     console.error('Error creating group:', error);
@@ -566,11 +512,12 @@ export async function getMembersWithStats(groupId: string): Promise<MemberWithSt
  * @returns Sorted array with rank assignments
  */
 export function calculateRankings(members: MemberWithStats[]): Ranking[] {
-  // Filter out members with no data
-  const validMembers = members.filter((m) => m.stats.total_nuts > 0);
+  // Separate members with data from those without
+  const membersWithData = members.filter((m) => m.stats.total_nuts > 0);
+  const membersWithoutData = members.filter((m) => m.stats.total_nuts === 0);
 
-  // Sort by cost per nut (ascending - lower is better), then by efficiency score (descending - higher is better)
-  const sorted = [...validMembers].sort((a, b) => {
+  // Sort members with data by cost per nut (ascending - lower is better), then by efficiency score (descending - higher is better)
+  const sortedWithData = [...membersWithData].sort((a, b) => {
     // Primary: Cost per nut (lower is better)
     if (a.stats.cost_per_nut !== b.stats.cost_per_nut) {
       return a.stats.cost_per_nut - b.stats.cost_per_nut;
@@ -579,8 +526,16 @@ export function calculateRankings(members: MemberWithStats[]): Ranking[] {
     return b.stats.efficiency_score - a.stats.efficiency_score;
   });
 
+  // Sort members without data by joined date (earliest first)
+  const sortedWithoutData = [...membersWithoutData].sort((a, b) => {
+    return new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime();
+  });
+
+  // Combine: members with data first, then members without data
+  const allSorted = [...sortedWithData, ...sortedWithoutData];
+
   // Assign ranks
-  return sorted.map((member, index) => ({
+  return allSorted.map((member, index) => ({
     rank: index + 1,
     member,
   }));
