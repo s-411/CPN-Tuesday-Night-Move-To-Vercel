@@ -158,11 +158,8 @@ export function SignUp({ onSwitchToSignIn, onSuccess }: SignUpProps) {
           // Clear referral context
           clearReferralContext();
 
-          // Wait a moment to ensure all database operations complete
-          // before redirecting (prevents race condition with auth state change)
-          await new Promise(resolve => setTimeout(resolve, 500));
-
-          // Redirect referred users to trial activation page
+          // Redirect immediately to prevent dashboard flash
+          // Database operations have completed, safe to redirect
           console.log('[SignUp] Redirecting to trial activation page');
           window.location.href = '/activating-trial';
           return; // Don't show success message, redirect immediately

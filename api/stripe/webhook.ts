@@ -87,6 +87,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .eq('id', userId);
 
         if (error) console.error('Error updating user after checkout:', error);
+
+        // Add "player-mode" tag to KIT
+        try {
+          const { data: user } = await supabase
+            .from('users')
+            .select('kit_subscriber_id, email')
+            .eq('id', userId)
+            .maybeSingle();
+
+          if (user?.kit_subscriber_id) {
+            const kitApiKey = getEnv('KIT_API_KEY');
+            if (kitApiKey) {
+              console.log('[Webhook] Adding player-mode tag to KIT subscriber:', user.kit_subscriber_id);
+
+              await fetch(`https://api.kit.com/v4/subscribers/${user.kit_subscriber_id}/tags`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${kitApiKey}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  tags: [{ name: 'player-mode' }]
+                }),
+              });
+
+              console.log('[Webhook] Successfully added player-mode tag to KIT');
+            }
+          }
+        } catch (kitError) {
+          console.error('[Webhook] Error adding KIT tag:', kitError);
+          // Don't fail webhook if KIT tagging fails
+        }
+
         break;
       }
 
@@ -119,6 +152,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
+
+        // Get user before updating to preserve kit_subscriber_id
+        const { data: user } = await supabase
+          .from('users')
+          .select('kit_subscriber_id')
+          .eq('stripe_subscription_id', subscription.id)
+          .maybeSingle();
+
         const { error } = await supabase
           .from('users')
           .update({
@@ -129,6 +170,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           })
           .eq('stripe_subscription_id', subscription.id);
         if (error) console.error('Error handling subscription cancellation:', error);
+
+        // Add "cancelled" tag to KIT
+        try {
+          if (user?.kit_subscriber_id) {
+            const kitApiKey = getEnv('KIT_API_KEY');
+            if (kitApiKey) {
+              console.log('[Webhook] Adding cancelled tag to KIT subscriber:', user.kit_subscriber_id);
+
+              await fetch(`https://api.kit.com/v4/subscribers/${user.kit_subscriber_id}/tags`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${kitApiKey}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  tags: [{ name: 'cancelled' }]
+                }),
+              });
+
+              console.log('[Webhook] Successfully added cancelled tag to KIT');
+            }
+          }
+        } catch (kitError) {
+          console.error('[Webhook] Error adding KIT cancelled tag:', kitError);
+          // Don't fail webhook if KIT tagging fails
+        }
+
         break;
       }
 
