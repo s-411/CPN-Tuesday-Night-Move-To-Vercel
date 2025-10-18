@@ -1,0 +1,63 @@
+CPN Dual Referral System Implementation Plan
+Overview
+Implement a dual-campaign referral system using Rewardful:
+Campaign 1 (Influencer): 50% cash commissions, manual signup, NO free trials for referees
+Campaign 2 (Friend Referral): "Give 1 week / Get 1 week" credits, automatic signup, NO cash payouts
+What We'll Build
+Campaign 1: Influencer Affiliate Program
+How they join: Manual signup at Rewardful portal
+Their reward: 50% of ALL payments forever (e.g., $0.99 per $1.99 weekly sub)
+Referee reward: 3-day free trial (not 7 days - to differentiate)
+Payouts: You manually pay via Wise/PayPal based on Rewardful dashboard
+Example: Luke's link https://app.cost-per-nut.com/?via=luke gives 3-day trial
+Campaign 2: Refer-a-Friend Program
+How they join: Automatic on signup (every user becomes affiliate)
+Their reward: 7 days added to subscription when friend's first payment clears
+Referee reward: 7-day free trial
+Payouts: NONE - only subscription time credits
+Implementation: We track in our database, apply credits via Stripe
+Technical Implementation
+Phase 1: Rewardful Setup (30 min)
+Create Campaign 1: "Influencer Program" (50% recurring commission)
+Create Campaign 2: "Refer-a-Friend" ($0 commission - we handle rewards in code)
+Add environment variables to Vercel/Supabase
+Phase 2: Database & Core Logic (2 hours)
+✅ Already done: Migration with referral fields
+✅ Already done: Referral detection utilities
+NEW: Modify affiliate creation API to use Campaign 2 ID
+NEW: Add campaign detection logic (influencer vs friend)
+Phase 3: Influencer Flow (1 hour)
+Detect ?via=luke (influencer referral)
+Give referee 3-day trial (not 7)
+Track conversion to Campaign 1
+Referee does NOT earn credits (they came via influencer)
+Phase 4: Friend Flow (1 hour)
+✅ Already done: 7-day trial for referees
+NEW: When referee's first payment clears → add 7 days to referrer's subscription
+NEW: Database schema for tracking credits (Option A: add columns to users table)
+NEW: Stripe webhook to apply credits on billing
+Phase 5: Credit Application System (2 hours)
+When user has earned credits, extend their subscription end date by 7 days
+Auto-apply on next billing cycle (no manual action)
+Update database to track credits_earned vs credits_used
+Show notification: "You earned 1 week free!"
+Phase 6: Testing & Deployment (1 hour)
+Test Luke's influencer link (3-day trial, tracks to Campaign 1)
+Test friend referral link (7-day trial, tracks to Campaign 2, credits applied)
+Test credit application on billing cycle
+Deploy to production
+Key Decisions Made
+Database Schema (Option A - Simple columns)
+-- Users table already has:
+referral_credits_earned INTEGER  -- total weeks earned
+referral_credits_remaining INTEGER  -- weeks not yet used
+Credit Application (Option A - Auto-extend subscription)
+When user earns credit, add 7 days to their subscription_end_date
+Transparent, no user action required
+Notification shown: "You saved $1.99 this week!"
+Affiliate Token Generation (UUID prefix)
+Use first 8 chars of Supabase UUID: a1b2c3d4
+Anonymous, unique, no PII exposure
+Conversion Tracking (Option C - First payment)
+Referrer earns credit when referee's FIRST payment processes
+Prevents gaming (fake signups)
