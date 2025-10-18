@@ -10,7 +10,24 @@ import { OnboardingLayout } from '../../components/OnboardingLayout';
 export function Step4() {
   const s1 = getStep1();
   const s2 = getStep2();
+
+  // Check if this is a referred user (from signup redirect)
+  const isReferred = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('ref') === 'true';
+    }
+    return false;
+  }, []);
+
   useEffect(() => {
+    // For referred users, skip onboarding data check and go straight to checkout
+    if (isReferred) {
+      console.log('[Step4] Referred user detected, will show checkout');
+      return;
+    }
+
+    // For normal users, validate onboarding data
     if (!s1) {
       goTo('/step-1');
       return;
@@ -19,7 +36,7 @@ export function Step4() {
       goTo('/step-2');
       return;
     }
-  }, []);
+  }, [isReferred]);
 
   const totalMinutes = useMemo(() => (s2 ? parseInt(s2.hours || '0') * 60 + parseInt(s2.minutes || '0') : 0), [s2]);
   const amount = useMemo(() => (s2 ? parseFloat(s2.amountSpent || '0') : 0), [s2]);
