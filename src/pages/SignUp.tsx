@@ -162,9 +162,9 @@ export function SignUp({ onSwitchToSignIn, onSuccess }: SignUpProps) {
           // before redirecting (prevents race condition with auth state change)
           await new Promise(resolve => setTimeout(resolve, 500));
 
-          // Redirect referred users to checkout with trial
-          console.log('[SignUp] Redirecting to checkout with 7-day trial');
-          window.location.href = '/step-4?ref=true';
+          // Redirect referred users to trial activation page
+          console.log('[SignUp] Redirecting to trial activation page');
+          window.location.href = '/activating-trial';
           return; // Don't show success message, redirect immediately
         } catch (referralError) {
           console.error('[SignUp] Error processing referral:', referralError);

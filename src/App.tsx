@@ -41,6 +41,7 @@ import { Welcome } from './pages/Welcome';
 import { MobileMenu } from './pages/MobileMenu';
 import { Share } from './pages/Share';
 import { Landing } from './pages/Landing';
+import { ActivatingTrial } from './pages/ActivatingTrial';
 
 type Girl = Database['public']['Tables']['girls']['Row'];
 type DataEntry = Database['public']['Tables']['data_entries']['Row'];
@@ -372,6 +373,11 @@ function AppContent() {
 
   if (isSubscriptionSuccessPage()) {
     return <SubscriptionSuccess />;
+  }
+
+  // Activating trial page for referred users
+  if (pathname === '/activating-trial') {
+    return <ActivatingTrial />;
   }
 
   // Welcome pages after onboarding completion
