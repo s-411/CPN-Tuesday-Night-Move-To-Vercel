@@ -149,12 +149,6 @@ function AppContent() {
     return () => window.removeEventListener('navigate-to-settings', handleNavigateToSettings);
   }, []);
 
-  // Redirect unauthenticated users from /signup to onboarding /step-1
-  useEffect(() => {
-    if (!user && pathname === '/signup') {
-      goTo('/step-1');
-    }
-  }, [user, pathname]);
 
   // Redirect signed-in users from onboarding steps to Step 4 only if they have active onboarding data
   useEffect(() => {
