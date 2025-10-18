@@ -8,10 +8,16 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase/client';
 import { STRIPE_CONFIG } from '../lib/stripe/config';
+import { clearReferralSignupInProgress } from '../lib/referral/utils';
 
 export function ActivatingTrial() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+
+  // Clear the referral signup flag when this page loads
+  useEffect(() => {
+    clearReferralSignupInProgress();
+  }, []);
 
   useEffect(() => {
     // Smooth progress bar animation

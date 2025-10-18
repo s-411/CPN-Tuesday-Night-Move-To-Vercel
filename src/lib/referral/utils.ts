@@ -117,3 +117,35 @@ export function isReferralContextValid(context: ReferralContext | null): boolean
 
   return isValid;
 }
+
+/**
+ * Sets a flag to indicate user is in the referral signup flow
+ * This prevents the dashboard from rendering before redirect to /activating-trial
+ */
+export function setReferralSignupInProgress(): void {
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem('referral_signup_in_progress', 'true');
+    console.log('[Referral] Set signup in progress flag');
+  }
+}
+
+/**
+ * Checks if user is currently in the referral signup flow
+ */
+export function isReferralSignupInProgress(): boolean {
+  if (typeof window !== 'undefined') {
+    return sessionStorage.getItem('referral_signup_in_progress') === 'true';
+  }
+  return false;
+}
+
+/**
+ * Clears the referral signup in progress flag
+ * Called after user reaches /activating-trial page
+ */
+export function clearReferralSignupInProgress(): void {
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem('referral_signup_in_progress');
+    console.log('[Referral] Cleared signup in progress flag');
+  }
+}

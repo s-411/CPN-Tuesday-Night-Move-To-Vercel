@@ -42,6 +42,7 @@ import { MobileMenu } from './pages/MobileMenu';
 import { Share } from './pages/Share';
 import { Landing } from './pages/Landing';
 import { ActivatingTrial } from './pages/ActivatingTrial';
+import { isReferralSignupInProgress } from './lib/referral/utils';
 
 type Girl = Database['public']['Tables']['girls']['Row'];
 type DataEntry = Database['public']['Tables']['data_entries']['Row'];
@@ -277,6 +278,18 @@ function AppContent() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-cpn-gray">Loading...</div>
+      </div>
+    );
+  }
+
+  // If user just signed up via referral, redirect to activating trial immediately
+  // This prevents dashboard flash while signup completes
+  if (user && isReferralSignupInProgress()) {
+    console.log('[App] Referral signup in progress, redirecting to /activating-trial');
+    window.location.href = '/activating-trial';
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-cpn-gray">Setting up your trial...</div>
       </div>
     );
   }

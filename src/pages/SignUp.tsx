@@ -1,7 +1,7 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { UserPlus } from 'lucide-react';
-import { getReferralContext, clearReferralContext } from '../lib/referral/utils';
+import { getReferralContext, clearReferralContext, setReferralSignupInProgress } from '../lib/referral/utils';
 import { trackConversion } from '../lib/referral/rewardful';
 import { supabase } from '../lib/supabase/client';
 
@@ -46,6 +46,13 @@ export function SignUp({ onSwitchToSignIn, onSuccess }: SignUpProps) {
     setLoading(true);
 
     try {
+      // If this is a referred signup, set flag to prevent dashboard flash
+      const referralContext = getReferralContext();
+      if (referralContext?.isReferred && referralContext.referralId) {
+        setReferralSignupInProgress();
+        console.log('[SignUp] Set referral signup in progress flag');
+      }
+
       // Step 1: Create Supabase auth account
       const { data, error: signUpError } = await signUp(email, password);
 
@@ -115,9 +122,7 @@ export function SignUp({ onSwitchToSignIn, onSuccess }: SignUpProps) {
         // Don't fail signup if affiliate creation fails
       }
 
-      // Step 4: Check if this user was referred
-      const referralContext = getReferralContext();
-
+      // Step 4: Check if this user was referred (reuse referralContext from above)
       if (referralContext?.isReferred && referralContext.referralId) {
         console.log('[SignUp] Processing referred signup:', referralContext.referralId);
 
