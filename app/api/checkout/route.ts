@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { priceId, planType } = body;
+    const { priceId, planType, isReferralSignup } = body;
 
     if (!priceId) {
       return NextResponse.json(
@@ -100,6 +100,21 @@ export async function POST(request: NextRequest) {
     const successUrl = `${baseUrl}/welcome-premium`;
     const cancelUrl = `${baseUrl}/step-4`;
 
+    // Configure subscription options
+    const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
+      metadata: {
+        supabase_user_id: user.id,
+        plan_type: planType,
+        is_referral_signup: isReferralSignup ? 'true' : 'false',
+      },
+    };
+
+    // Add 7-day free trial for referred users
+    if (isReferralSignup) {
+      subscriptionData.trial_period_days = 7;
+      console.log('[Checkout API] Adding 7-day free trial for referred user');
+    }
+
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -115,13 +130,9 @@ export async function POST(request: NextRequest) {
       metadata: {
         supabase_user_id: user.id,
         plan_type: planType,
+        is_referral_signup: isReferralSignup ? 'true' : 'false',
       },
-      subscription_data: {
-        metadata: {
-          supabase_user_id: user.id,
-          plan_type: planType,
-        },
-      },
+      subscription_data: subscriptionData,
     });
 
     return NextResponse.json({ url: session.url });

@@ -95,13 +95,20 @@ export function Step4() {
         setMessage('Please sign in first.');
         return;
       }
+
+      console.log('[Step4] Starting checkout:', { planType, isReferred });
+
       const response = await fetch(`/api/checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ priceId, planType }),
+        body: JSON.stringify({
+          priceId,
+          planType,
+          isReferralSignup: isReferred  // Pass referral flag to API
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to create checkout session');
@@ -110,6 +117,18 @@ export function Step4() {
       setMessage(e?.message || 'Failed to start checkout');
     }
   };
+
+  // Auto-redirect referred users to checkout with weekly plan + 7-day trial
+  useEffect(() => {
+    if (isReferred) {
+      console.log('[Step4] Auto-starting checkout for referred user');
+      // Small delay to ensure page is fully loaded
+      const timer = setTimeout(() => {
+        startCheckout('weekly');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isReferred]);
 
   return (
     <OnboardingLayout step={4}>
