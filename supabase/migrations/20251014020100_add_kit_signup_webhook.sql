@@ -14,7 +14,7 @@
   3. Setup (Manual Step Required)
     - This SQL creates the webhook configuration
     - You must also configure the webhook in Supabase Dashboard:
-      Database ’ Webhooks ’ Create a new hook
+      Database ï¿½ Webhooks ï¿½ Create a new hook
 
   4. Webhook Configuration
     - Name: kit-user-signup

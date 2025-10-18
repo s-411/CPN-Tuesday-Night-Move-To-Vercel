@@ -39,6 +39,8 @@ import { Step4 } from './pages/onboarding/Step4';
 import { WelcomePremium } from './pages/WelcomePremium';
 import { Welcome } from './pages/Welcome';
 import { MobileMenu } from './pages/MobileMenu';
+import { Share } from './pages/Share';
+import { Landing } from './pages/Landing';
 
 type Girl = Database['public']['Tables']['girls']['Row'];
 type DataEntry = Database['public']['Tables']['data_entries']['Row'];
@@ -105,7 +107,11 @@ function AppContent() {
 
   useEffect(() => {
     const path = pathname;
-    if (path === '/password-update') {
+    if (path === '/signup') {
+      setAuthView('signup');
+    } else if (path === '/signin') {
+      setAuthView('signin');
+    } else if (path === '/password-update') {
       setAuthView('passwordupdate');
     } else if (path === '/reset-password') {
       setAuthView('resetpassword');
@@ -279,6 +285,16 @@ function AppContent() {
       return <SubscriptionSuccess />;
     }
 
+    // Root landing page
+    if (pathname === '/') {
+      return <Landing />;
+    }
+
+    // Share/referral landing page - accessible to all users
+    if (pathname === '/share') {
+      return <Share />;
+    }
+
     // Onboarding steps for unauthenticated users
     if (pathname === '/step-1') {
       return <Step1 />;
@@ -304,11 +320,11 @@ function AppContent() {
         <SignUp
           onSwitchToSignIn={() => {
             setAuthView('signin');
-            window.history.pushState({}, '', '/');
+            window.history.pushState({}, '', '/signin');
           }}
           onSuccess={() => {
             setAuthView('signin');
-            window.history.pushState({}, '', '/');
+            window.history.pushState({}, '', '/signin');
           }}
         />
       );
@@ -319,7 +335,7 @@ function AppContent() {
         <ResetPassword
           onSwitchToSignIn={() => {
             setAuthView('signin');
-            window.history.pushState({}, '', '/');
+            window.history.pushState({}, '', '/signin');
           }}
         />
       );
@@ -330,7 +346,7 @@ function AppContent() {
         <PasswordUpdate
           onSwitchToSignIn={() => {
             setAuthView('signin');
-            window.history.pushState({}, '', '/');
+            window.history.pushState({}, '', '/signin');
           }}
         />
       );
