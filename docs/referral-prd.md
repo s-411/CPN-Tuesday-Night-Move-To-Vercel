@@ -1,8 +1,19 @@
-# CPN Brownfield Enhancement PRD
+# ⚠️ DEPRECATED - DO NOT USE ⚠️
+
+**This PRD is outdated and based on GrowSurf, which we are NOT using.**
+
+**👉 SEE INSTEAD:** `docs/rewardful/simplified-implementation-plan.md`
+
+**Date Deprecated:** 2025-10-18
+**Reason:** Switched from GrowSurf to Rewardful for better affiliate/influencer program support
+
+---
+
+# CPN Brownfield Enhancement PRD (DEPRECATED)
 ## "Give 1 Week / Get 1 Week" Referral Program
 
 **Version:** 1.0
-**Status:** Draft
+**Status:** ~~Draft~~ DEPRECATED
 **Last Updated:** 2025-10-12
 **Author:** John (PM Agent)
 
